@@ -1,0 +1,54 @@
+[project]
+name = "ai-from-first-principles"
+version = "0.1.0"
+description = "Build-first curriculum from linear algebra to frontier LLMs and agents."
+readme = "README.md"
+requires-python = ">=3.11"
+
+# Base dependencies — always installed. Kept light so `uv sync` is fast.
+dependencies = [
+    "numpy>=2.0",
+    "matplotlib>=3.9",
+    "pytest>=8.0",
+    "jupyterlab>=4.0",
+    "ipykernel>=6.29",
+]
+
+# Optional groups — install only when you reach the phase that needs them, e.g.:
+#   uv sync --extra dl          # Phase 3+ (PyTorch)
+#   uv sync --extra nlp         # Phase 4/5 (transformers, datasets, tokenizers)
+#   uv sync --extra llmeng      # Phase 6 (RAG: embeddings, vector DB)
+#   uv sync --extra posttrain   # Phase 6/7 (LoRA, quantization, RLHF)
+#   uv sync --extra rl          # Phase 7 (reinforcement learning)
+[project.optional-dependencies]
+dl = [
+    "torch>=2.4",
+    "torchvision>=0.19",
+]
+nlp = [
+    "transformers>=4.44",
+    "datasets>=2.21",
+    "tokenizers>=0.20",
+    "scikit-learn>=1.5",   # for comparison/baselines only — never in the "from scratch" weeks
+]
+llmeng = [
+    "sentence-transformers>=3.0",
+    "chromadb>=0.5",
+]
+posttrain = [
+    "trl>=0.9",
+    "peft>=0.12",
+    "bitsandbytes>=0.43",
+]
+rl = [
+    "gymnasium>=0.29",
+]
+
+[tool.pytest.ini_options]
+# Discover tests across every phase folder.
+testpaths = ["phase1-math", "phase2-classical-ml", "phase3-neural-nets"]
+python_files = ["test_*.py"]
+addopts = "-q"
+
+[tool.uv]
+package = false

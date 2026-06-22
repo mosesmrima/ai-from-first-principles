@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Environments
+.venv/
+venv/
+.env
+.env.*
+
+# uv: the lockfile (uv.lock) is intentionally committed for reproducible installs.
+# To stop tracking it instead, add `uv.lock` on its own line here and run `git rm --cached uv.lock`.
+
+# Jupyter
+*.ipynb_checkpoints
+
+# Data, models, checkpoints (keep the repo light — these can be huge)
+data/
+datasets/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.gguf
+checkpoints/
+runs/
+wandb/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp

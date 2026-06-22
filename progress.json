@@ -1,0 +1,536 @@
+[
+  {
+    "id": "week00",
+    "phase": "Phase 0 \u2014 Setup",
+    "title": "Environment, first note, 3B1B Linear Algebra",
+    "done": false
+  },
+  {
+    "id": "week01",
+    "phase": "Phase 1 \u2014 Math",
+    "title": "Vectors, matrices, dot products \u2192 matrix_multiply.py",
+    "done": false
+  },
+  {
+    "id": "week02",
+    "phase": "Phase 1 \u2014 Math",
+    "title": "Linear transformations & basis \u2192 2D vector visualizer",
+    "done": false
+  },
+  {
+    "id": "week03",
+    "phase": "Phase 1 \u2014 Math",
+    "title": "Eigenvalues/eigenvectors, SVD \u2192 PCA intuition notebook",
+    "done": false
+  },
+  {
+    "id": "week04",
+    "phase": "Phase 1 \u2014 Math",
+    "title": "Derivatives & gradients \u2192 gradient-descent viz",
+    "done": false
+  },
+  {
+    "id": "week05",
+    "phase": "Phase 1 \u2014 Math",
+    "title": "Partial derivatives & chain rule \u2192 manual backprop notebook",
+    "done": false
+  },
+  {
+    "id": "week06",
+    "phase": "Phase 1 \u2014 Math",
+    "title": "Probability & Bayes \u2192 coin-flip simulations",
+    "done": false
+  },
+  {
+    "id": "week07",
+    "phase": "Phase 1 \u2014 Math",
+    "title": "Distributions, expectation, variance \u2192 distribution visualizer",
+    "done": false
+  },
+  {
+    "id": "week08",
+    "phase": "Phase 1 \u2014 Math",
+    "title": "\u2605 Capstone: Linear + Logistic Regression (NumPy only)",
+    "done": false
+  },
+  {
+    "id": "week09",
+    "phase": "Phase 2 \u2014 Classical ML",
+    "title": "Linear regression from scratch",
+    "done": false
+  },
+  {
+    "id": "week10",
+    "phase": "Phase 2 \u2014 Classical ML",
+    "title": "Logistic regression from scratch",
+    "done": false
+  },
+  {
+    "id": "week11",
+    "phase": "Phase 2 \u2014 Classical ML",
+    "title": "Decision trees from scratch",
+    "done": false
+  },
+  {
+    "id": "week12",
+    "phase": "Phase 2 \u2014 Classical ML",
+    "title": "Random forests",
+    "done": false
+  },
+  {
+    "id": "week13",
+    "phase": "Phase 2 \u2014 Classical ML",
+    "title": "K-means from scratch",
+    "done": false
+  },
+  {
+    "id": "week14",
+    "phase": "Phase 2 \u2014 Classical ML",
+    "title": "PCA from scratch",
+    "done": false
+  },
+  {
+    "id": "week15",
+    "phase": "Phase 2 \u2014 Classical ML",
+    "title": "Classical AI: search & A*",
+    "done": false
+  },
+  {
+    "id": "week16",
+    "phase": "Phase 2 \u2014 Classical ML",
+    "title": "\u2605 Capstone: ML Playground (classify/cluster/regress)",
+    "done": false
+  },
+  {
+    "id": "week17",
+    "phase": "Phase 3 \u2014 Neural Nets",
+    "title": "micrograd part 1 \u2014 Value class",
+    "done": false
+  },
+  {
+    "id": "week18",
+    "phase": "Phase 3 \u2014 Neural Nets",
+    "title": "Autograd engine",
+    "done": false
+  },
+  {
+    "id": "week19",
+    "phase": "Phase 3 \u2014 Neural Nets",
+    "title": "Backpropagation",
+    "done": false
+  },
+  {
+    "id": "week20",
+    "phase": "Phase 3 \u2014 Neural Nets",
+    "title": "MLP",
+    "done": false
+  },
+  {
+    "id": "week21",
+    "phase": "Phase 3 \u2014 Neural Nets",
+    "title": "Train character classifier",
+    "done": false
+  },
+  {
+    "id": "week22",
+    "phase": "Phase 3 \u2014 Neural Nets",
+    "title": "Optimization (SGD/Momentum/Adam) + PyTorch intro",
+    "done": false
+  },
+  {
+    "id": "week23",
+    "phase": "Phase 3 \u2014 Neural Nets",
+    "title": "Activation functions (ReLU/Tanh/Sigmoid)",
+    "done": false
+  },
+  {
+    "id": "week24",
+    "phase": "Phase 3 \u2014 Neural Nets",
+    "title": "Regularization (dropout, batchnorm)",
+    "done": false
+  },
+  {
+    "id": "week25",
+    "phase": "Phase 3 \u2014 Neural Nets",
+    "title": "makemore (part 1)",
+    "done": false
+  },
+  {
+    "id": "week26",
+    "phase": "Phase 3 \u2014 Neural Nets",
+    "title": "makemore (part 2)",
+    "done": false
+  },
+  {
+    "id": "week27",
+    "phase": "Phase 3 \u2014 Neural Nets",
+    "title": "\u2605 Capstone: Tiny NN framework (part 1)",
+    "done": false
+  },
+  {
+    "id": "week28",
+    "phase": "Phase 3 \u2014 Neural Nets",
+    "title": "\u2605 Capstone: Tiny NN framework (part 2)",
+    "done": false
+  },
+  {
+    "id": "week29",
+    "phase": "Phase 4 \u2014 Deep Learning",
+    "title": "CNNs \u2014 image classifier",
+    "done": false
+  },
+  {
+    "id": "week30",
+    "phase": "Phase 4 \u2014 Deep Learning",
+    "title": "Convolutions from scratch",
+    "done": false
+  },
+  {
+    "id": "week31",
+    "phase": "Phase 4 \u2014 Deep Learning",
+    "title": "RNNs",
+    "done": false
+  },
+  {
+    "id": "week32",
+    "phase": "Phase 4 \u2014 Deep Learning",
+    "title": "LSTMs",
+    "done": false
+  },
+  {
+    "id": "week33",
+    "phase": "Phase 4 \u2014 Deep Learning",
+    "title": "Word embeddings + t-SNE/UMAP viz",
+    "done": false
+  },
+  {
+    "id": "week34",
+    "phase": "Phase 4 \u2014 Deep Learning",
+    "title": "Sequence modeling (seq2seq)",
+    "done": false
+  },
+  {
+    "id": "week35",
+    "phase": "Phase 4 \u2014 Deep Learning",
+    "title": "Attention mechanism from scratch",
+    "done": false
+  },
+  {
+    "id": "week36",
+    "phase": "Phase 4 \u2014 Deep Learning",
+    "title": "\u2605 Capstone: sentiment classifier",
+    "done": false
+  },
+  {
+    "id": "week37",
+    "phase": "Phase 5 \u2014 Transformers",
+    "title": "Read 'Attention Is All You Need' + summary",
+    "done": false
+  },
+  {
+    "id": "week38",
+    "phase": "Phase 5 \u2014 Transformers",
+    "title": "Scaled dot-product attention",
+    "done": false
+  },
+  {
+    "id": "week39",
+    "phase": "Phase 5 \u2014 Transformers",
+    "title": "Multi-head attention",
+    "done": false
+  },
+  {
+    "id": "week40",
+    "phase": "Phase 5 \u2014 Transformers",
+    "title": "Transformer block",
+    "done": false
+  },
+  {
+    "id": "week41",
+    "phase": "Phase 5 \u2014 Transformers",
+    "title": "Encoder",
+    "done": false
+  },
+  {
+    "id": "week42",
+    "phase": "Phase 5 \u2014 Transformers",
+    "title": "Decoder",
+    "done": false
+  },
+  {
+    "id": "week43",
+    "phase": "Phase 5 \u2014 Transformers",
+    "title": "BPE tokenizer from scratch",
+    "done": false
+  },
+  {
+    "id": "week44",
+    "phase": "Phase 5 \u2014 Transformers",
+    "title": "Positional embeddings",
+    "done": false
+  },
+  {
+    "id": "week45",
+    "phase": "Phase 5 \u2014 Transformers",
+    "title": "Train mini-transformer",
+    "done": false
+  },
+  {
+    "id": "week46",
+    "phase": "Phase 5 \u2014 Transformers",
+    "title": "Train GPT-like model",
+    "done": false
+  },
+  {
+    "id": "week47",
+    "phase": "Phase 5 \u2014 Transformers",
+    "title": "Text generation (sampling)",
+    "done": false
+  },
+  {
+    "id": "week48",
+    "phase": "Phase 5 \u2014 Transformers",
+    "title": "\u2605 Capstone: nanoGPT reproduction",
+    "done": false
+  },
+  {
+    "id": "week49",
+    "phase": "Phase 6 \u2014 LLM Engineering",
+    "title": "Embeddings",
+    "done": false
+  },
+  {
+    "id": "week50",
+    "phase": "Phase 6 \u2014 LLM Engineering",
+    "title": "Vector databases",
+    "done": false
+  },
+  {
+    "id": "week51",
+    "phase": "Phase 6 \u2014 LLM Engineering",
+    "title": "Semantic search",
+    "done": false
+  },
+  {
+    "id": "week52",
+    "phase": "Phase 6 \u2014 LLM Engineering",
+    "title": "RAG fundamentals",
+    "done": false
+  },
+  {
+    "id": "week53",
+    "phase": "Phase 6 \u2014 LLM Engineering",
+    "title": "Build simple RAG",
+    "done": false
+  },
+  {
+    "id": "week54",
+    "phase": "Phase 6 \u2014 LLM Engineering",
+    "title": "Evaluation",
+    "done": false
+  },
+  {
+    "id": "week55",
+    "phase": "Phase 6 \u2014 LLM Engineering",
+    "title": "Fine-tuning",
+    "done": false
+  },
+  {
+    "id": "week56",
+    "phase": "Phase 6 \u2014 LLM Engineering",
+    "title": "LoRA",
+    "done": false
+  },
+  {
+    "id": "week57",
+    "phase": "Phase 6 \u2014 LLM Engineering",
+    "title": "Quantization (GPTQ/bitsandbytes/QLoRA)",
+    "done": false
+  },
+  {
+    "id": "week58",
+    "phase": "Phase 6 \u2014 LLM Engineering",
+    "title": "Inference optimization (KV cache, batching)",
+    "done": false
+  },
+  {
+    "id": "week59",
+    "phase": "Phase 6 \u2014 LLM Engineering",
+    "title": "\u2605 Capstone: Production RAG (part 1)",
+    "done": false
+  },
+  {
+    "id": "week60",
+    "phase": "Phase 6 \u2014 LLM Engineering",
+    "title": "\u2605 Capstone: Production RAG (part 2)",
+    "done": false
+  },
+  {
+    "id": "week61",
+    "phase": "Phase 7 \u2014 RLHF",
+    "title": "RL basics",
+    "done": false
+  },
+  {
+    "id": "week62",
+    "phase": "Phase 7 \u2014 RLHF",
+    "title": "Q-learning",
+    "done": false
+  },
+  {
+    "id": "week63",
+    "phase": "Phase 7 \u2014 RLHF",
+    "title": "Policy gradients (REINFORCE)",
+    "done": false
+  },
+  {
+    "id": "week64",
+    "phase": "Phase 7 \u2014 RLHF",
+    "title": "RLHF overview",
+    "done": false
+  },
+  {
+    "id": "week65",
+    "phase": "Phase 7 \u2014 RLHF",
+    "title": "Preference datasets",
+    "done": false
+  },
+  {
+    "id": "week66",
+    "phase": "Phase 7 \u2014 RLHF",
+    "title": "DPO",
+    "done": false
+  },
+  {
+    "id": "week67",
+    "phase": "Phase 7 \u2014 RLHF",
+    "title": "Evaluation frameworks",
+    "done": false
+  },
+  {
+    "id": "week68",
+    "phase": "Phase 7 \u2014 RLHF",
+    "title": "\u2605 Capstone: Toy RLHF pipeline",
+    "done": false
+  },
+  {
+    "id": "week69",
+    "phase": "Phase 8 \u2014 Agents",
+    "title": "Raw tool calling (no framework)",
+    "done": false
+  },
+  {
+    "id": "week70",
+    "phase": "Phase 8 \u2014 Agents",
+    "title": "Memory systems",
+    "done": false
+  },
+  {
+    "id": "week71",
+    "phase": "Phase 8 \u2014 Agents",
+    "title": "Planning loops",
+    "done": false
+  },
+  {
+    "id": "week72",
+    "phase": "Phase 8 \u2014 Agents",
+    "title": "Reflection patterns",
+    "done": false
+  },
+  {
+    "id": "week73",
+    "phase": "Phase 8 \u2014 Agents",
+    "title": "MCP (Model Context Protocol)",
+    "done": false
+  },
+  {
+    "id": "week74",
+    "phase": "Phase 8 \u2014 Agents",
+    "title": "Multi-agent systems",
+    "done": false
+  },
+  {
+    "id": "week75",
+    "phase": "Phase 8 \u2014 Agents",
+    "title": "Agent evaluation",
+    "done": false
+  },
+  {
+    "id": "week76",
+    "phase": "Phase 8 \u2014 Agents",
+    "title": "\u2605 Capstone: AI Security Research Agent",
+    "done": false
+  },
+  {
+    "id": "research-graduation",
+    "phase": "Phase 9 \u2014 Research",
+    "title": "Public repo + writeup reproducing/improving a paper",
+    "done": false
+  },
+  {
+    "id": "advanced",
+    "phase": "Phase 10 \u2014 Advanced",
+    "title": "Advanced systems track (Year 2+)",
+    "done": false
+  },
+  {
+    "id": "portfolio01",
+    "phase": "Portfolio",
+    "title": "Matrix algebra library",
+    "done": false
+  },
+  {
+    "id": "portfolio02",
+    "phase": "Portfolio",
+    "title": "Logistic regression from scratch",
+    "done": false
+  },
+  {
+    "id": "portfolio03",
+    "phase": "Portfolio",
+    "title": "Neural-network framework",
+    "done": false
+  },
+  {
+    "id": "portfolio04",
+    "phase": "Portfolio",
+    "title": "CNN classifier",
+    "done": false
+  },
+  {
+    "id": "portfolio05",
+    "phase": "Portfolio",
+    "title": "Transformer implementation",
+    "done": false
+  },
+  {
+    "id": "portfolio06",
+    "phase": "Portfolio",
+    "title": "GPT implementation",
+    "done": false
+  },
+  {
+    "id": "portfolio07",
+    "phase": "Portfolio",
+    "title": "Fine-tuned LLM",
+    "done": false
+  },
+  {
+    "id": "portfolio08",
+    "phase": "Portfolio",
+    "title": "Production RAG system",
+    "done": false
+  },
+  {
+    "id": "portfolio09",
+    "phase": "Portfolio",
+    "title": "Security AI agent",
+    "done": false
+  },
+  {
+    "id": "portfolio10",
+    "phase": "Portfolio",
+    "title": "Paper-reproduction project",
+    "done": false
+  }
+]
