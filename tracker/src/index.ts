@@ -1,8 +1,8 @@
 // AI Curriculum Tracker — Cloudflare Worker.
 // Serves the static frontend (ASSETS) and a small JSON API backed by D1,
 // plus a weekly cron that emails a schedule reminder.
-import { buildTimetable, type Milestone, type Settings } from "./schedule";
-import { sendReminder, sendWhatsApp } from "./email";
+import { buildTimetable, dailyPlan, type Milestone, type Settings } from "./schedule";
+import { sendNtfy } from "./ntfy";
 
 export interface Env {
   DB: D1Database;
@@ -12,10 +12,8 @@ export interface Env {
   FROM_NAME: string;
   REMINDER_EMAIL: string;
   APP_URL: string;
-  WHATSAPP_TOKEN?: string;
-  WHATSAPP_PHONE_ID?: string;
-  WHATSAPP_TO?: string;
   ACCESS_PASSWORD?: string; // if set, the whole app requires this password
+  NTFY_TOPIC?: string; // ntfy.sh topic for daily phone push reminders
 }
 
 const json = (data: unknown, status = 200) =>
@@ -32,6 +30,7 @@ async function loadSettings(env: Env): Promise<Settings> {
     start_date: s.start_date ?? "2026-07-08",
     pace_weeks_per_slot: s.pace_weeks_per_slot ?? "1",
     buffer_per_phase: s.buffer_per_phase ?? "1",
+    study_days: s.study_days ?? "1,2,3,4,5,6", // 0=Sun … 6=Sat (default Mon–Sat)
     ...s,
   };
 }
@@ -87,7 +86,7 @@ async function handleApi(req: Request, env: Env, url: URL): Promise<Response> {
   // PUT /api/settings   body: { start_date?, pace_weeks_per_slot?, buffer_per_phase?, reminder_enabled? }
   if (path === "/api/settings" && method === "PUT") {
     const body = (await req.json().catch(() => ({}))) as Record<string, string>;
-    const allowed = ["start_date", "pace_weeks_per_slot", "buffer_per_phase", "reminder_enabled", "timezone"];
+    const allowed = ["start_date", "pace_weeks_per_slot", "buffer_per_phase", "reminder_enabled", "timezone", "study_days"];
     const stmts = [];
     for (const k of allowed) {
       if (body[k] !== undefined) {
@@ -121,11 +120,12 @@ async function handleApi(req: Request, env: Env, url: URL): Promise<Response> {
     return json({ ok: true });
   }
 
-  // POST /api/test-reminder — send the weekly email now (for testing)
+  // POST /api/test-reminder — push today's session to your phone now (for testing)
   if (path === "/api/test-reminder" && method === "POST") {
-    const { schedule } = await getState(env);
-    const ok = await sendReminder(env, schedule);
-    return json({ sent: ok });
+    const [milestones, settings] = await Promise.all([loadMilestones(env), loadSettings(env)]);
+    const plan = dailyPlan(milestones, settings, Date.now());
+    const ok = await sendNtfy(env, plan);
+    return json({ sent: ok, isStudyDay: plan.isStudyDay, session: plan.sessionTitle });
   }
 
   return json({ error: "not found" }, 404);
@@ -207,14 +207,15 @@ export default {
     return env.ASSETS.fetch(req);
   },
 
+  // Runs daily (cron in wrangler.jsonc). Pushes today's study session to your
+  // phone via ntfy — but only on your configured study days.
   async scheduled(_event: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(
       (async () => {
-        const settings = await loadSettings(env);
+        const [settings, milestones] = await Promise.all([loadSettings(env), loadMilestones(env)]);
         if ((settings.reminder_enabled ?? "1") === "0") return;
-        const { schedule } = await getState(env);
-        await sendReminder(env, schedule);
-        await sendWhatsApp(env, schedule); // no-op until WhatsApp secrets are set
+        const plan = dailyPlan(milestones, settings, Date.now());
+        if (plan.isStudyDay) await sendNtfy(env, plan);
       })()
     );
   },

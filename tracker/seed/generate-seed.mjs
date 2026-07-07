@@ -123,12 +123,12 @@ for (const [phase, items] of Object.entries(RES)) {
 }
 lines.push("");
 
-// settings (start tomorrow, 1 week per slot, 1 buffer week per phase)
+// settings (start tomorrow, 1 week per slot, 1 buffer week per phase, study Mon–Sat)
 const settings = {
   start_date: "2026-07-08",
   pace_weeks_per_slot: "1",
   buffer_per_phase: "1",
-  reminder_email: "mrimamss@gmail.com",
+  study_days: "1,2,3,4,5,6", // 0=Sun … 6=Sat
   reminder_enabled: "1",
   timezone: "UTC",
 };

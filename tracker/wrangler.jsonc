@@ -23,18 +23,13 @@
     }
   ],
 
-  // Weekly reminder — Mondays 07:00 UTC. Adjust to your timezone if you like.
-  "triggers": { "crons": ["0 7 * * 1"] },
+  // Daily reminder — 07:00 UTC (10:00 EAT). The Worker only pushes on your
+  // configured study days (settings.study_days), so rest days stay quiet.
+  "triggers": { "crons": ["0 7 * * *"] },
 
   "vars": {
-    // Reminder email sends via AWS SES (SigV4 in src/ses.ts). FROM must be a verified
-    // SES identity on paylod.dev. AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY are secrets.
-    "FROM_EMAIL": "reminders@paylod.dev",
-    "FROM_NAME": "AI Curriculum Tracker",
-    "REMINDER_EMAIL": "mrimamss@gmail.com",
-    "APP_URL": "https://ai-tracker.mrima.workers.dev",
-    "AWS_REGION": "us-east-1"
-    // WHATSAPP_* are set later as secrets, once you have a Meta WABA (optional).
+    "APP_URL": "https://ai-tracker.mrima.workers.dev"
+    // NTFY_TOPIC is a secret (the reminder push topic). Set via `wrangler secret put`.
   },
 
   "workers_dev": true,

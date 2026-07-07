@@ -123,3 +123,81 @@ export function buildTimetable(all: Milestone[], settings: Settings, now: number
     },
   };
 }
+
+// --- daily study sessions ---------------------------------------------------
+// A generic session cycle applied within each week. Study days map to steps in
+// order; if a week has more study days than steps, the last (review) repeats.
+const SESSION_CYCLE = [
+  { title: "Watch & absorb", focus: "Watch/read this week's core resource end-to-end. Don't take notes yet — just follow it." },
+  { title: "Deepen & note", focus: "Revisit the hard parts. Write down exactly what still confuses you." },
+  { title: "Build — start", focus: "Open the week's artifact and start coding. Run the tests — they fail; that's your spec." },
+  { title: "Build — push", focus: "Keep building. Make the failing tests pass one at a time." },
+  { title: "Polish & verify", focus: "Finish and clean up. Pass the checkpoint — explain it out loud, no notes." },
+  { title: "Review & log", focus: "Write your note (learned / confused / built), commit, and mark the week done." },
+];
+
+export interface DailyPlan {
+  isStudyDay: boolean;
+  date: string;
+  weekPhase: string;
+  weekTitle: string;
+  weekId: string | null;
+  isBuffer: boolean;
+  sessionIndex: number; // 1-based position among this week's study days
+  sessionsThisWeek: number;
+  sessionTitle: string;
+  sessionFocus: string;
+  percent: number;
+  behind: number;
+}
+
+export function dailyPlan(all: Milestone[], settings: Settings, now: number): DailyPlan {
+  const tt = buildTimetable(all, settings, now);
+  const slot = tt.slots[tt.status.todayIndex] ?? tt.slots[tt.slots.length - 1];
+  const studyDays = (settings.study_days ?? "1,2,3,4,5,6")
+    .split(",")
+    .map((x) => parseInt(x, 10))
+    .filter((x) => !Number.isNaN(x)); // 0=Sun … 6=Sat
+  const weekday = new Date(now).getUTCDay();
+  const isStudyDay = studyDays.includes(weekday);
+
+  const slotStart = parseUTC(slot?.start ?? settings.start_date);
+  const dayOffset = Math.max(0, Math.min(6, Math.floor((now - slotStart) / DAY)));
+
+  let sessionsThisWeek = 0;
+  let sessionIndex = 0;
+  for (let o = 0; o <= 6; o++) {
+    const wd = new Date(slotStart + o * DAY).getUTCDay();
+    if (studyDays.includes(wd)) {
+      sessionsThisWeek++;
+      if (o <= dayOffset) sessionIndex = sessionsThisWeek;
+    }
+  }
+
+  const isBuffer = slot?.type === "buffer";
+  let sessionTitle: string;
+  let sessionFocus: string;
+  if (isBuffer) {
+    sessionTitle = "Review & buffer";
+    sessionFocus = "Catch up on anything unfinished, redo one hard exercise, then rest. You've earned it.";
+  } else {
+    const step = SESSION_CYCLE[Math.min(Math.max(sessionIndex - 1, 0), SESSION_CYCLE.length - 1)];
+    sessionTitle = step.title;
+    sessionFocus = step.focus;
+  }
+
+  return {
+    isStudyDay,
+    date: iso(now),
+    weekPhase: slot?.phase ?? "—",
+    weekTitle: slot?.title ?? "—",
+    weekId: slot?.milestoneId ?? null,
+    isBuffer,
+    sessionIndex: Math.max(sessionIndex, 1),
+    sessionsThisWeek,
+    sessionTitle,
+    sessionFocus,
+    percent: tt.status.percent,
+    behind: tt.status.behind,
+  };
+}

@@ -152,27 +152,48 @@ function renderSettings() {
   const pace = el("input", { type: "number", step: "0.25", min: "0.5", value: s.pace_weeks_per_slot, style: "width:90px" });
   const buffer = el("input", { type: "checkbox", checked: (s.buffer_per_phase ?? "1") !== "0" });
   const remind = el("input", { type: "checkbox", checked: (s.reminder_enabled ?? "1") !== "0" });
+
+  // study-days picker (0=Sun … 6=Sat)
+  const active = new Set((s.study_days ?? "1,2,3,4,5,6").split(",").map((x) => parseInt(x, 10)));
+  const labels = ["S", "M", "T", "W", "T", "F", "S"];
+  const dayBtns = labels.map((lab, d) => {
+    const b = el("button", {
+      className: "btn" + (active.has(d) ? "" : " ghost"),
+      style: "width:38px;padding:8px 0",
+      title: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d],
+    }, lab);
+    b.onclick = () => { active.has(d) ? active.delete(d) : active.add(d); b.className = "btn" + (active.has(d) ? "" : " ghost"); };
+    return b;
+  });
+
   const save = el("button", { className: "btn" }, "Save schedule");
   save.onclick = async () => {
+    const days = [...active].sort((a, b) => a - b).join(",") || "1,2,3,4,5,6";
     await api("/api/settings", { method: "PUT", body: JSON.stringify({
       start_date: start.value, pace_weeks_per_slot: pace.value,
-      buffer_per_phase: buffer.checked ? "1" : "0", reminder_enabled: remind.checked ? "1" : "0" }) });
+      buffer_per_phase: buffer.checked ? "1" : "0", reminder_enabled: remind.checked ? "1" : "0",
+      study_days: days }) });
     load();
   };
-  const test = el("button", { className: "btn ghost" }, "Send test email now");
-  test.onclick = async () => { const r = await api("/api/test-reminder", { method: "POST" }); alert(r.sent ? "Sent ✓" : "Email not sent — sending domain not onboarded yet."); };
+  const test = el("button", { className: "btn ghost" }, "Send test push now");
+  test.onclick = async () => {
+    const r = await api("/api/test-reminder", { method: "POST" });
+    alert(r.sent ? `Pushed ✓  (${r.session})` : "Not sent — ntfy topic not set, or offline.");
+  };
 
   root.append(
     el("div", { className: "phase-h" }, "Schedule"),
     el("div", { className: "card", style: "padding:14px" },
       el("div", { className: "form-row" }, el("label", { className: "field" }, "Start date", start), el("label", { className: "field" }, "Weeks per slot (pace)", pace)),
-      el("div", { className: "form-row" }, buffer, el("span", {}, "Add a review & buffer week after each phase"), ),
-      el("div", { className: "form-row" }, remind, el("span", {}, "Weekly email reminder (Mondays)")),
+      el("div", { className: "form-row" }, buffer, el("span", {}, "Add a review & buffer week after each phase")),
+      el("p", { className: "hint", style: "margin:6px 0 0" }, "Study days (each week's sessions spread across these):"),
+      el("div", { className: "form-row" }, ...dayBtns),
+      el("div", { className: "form-row" }, remind, el("span", {}, "Daily push reminder at 10:00 (on study days)")),
       el("div", { className: "form-row" }, save, test),
       el("p", { className: "hint" }, `Finishes ~${fmt(st.finishDate)} · ${st.totalContent} content weeks + buffers`)),
-    el("div", { className: "phase-h" }, "WhatsApp (optional)"),
+    el("div", { className: "phase-h" }, "Phone reminders (ntfy.sh)"),
     el("div", { className: "card", style: "padding:14px" },
-      el("p", { className: "hint" }, "Add WHATSAPP_TOKEN, WHATSAPP_PHONE_ID, WHATSAPP_TO as Worker secrets (Meta WhatsApp Cloud API) to also get WhatsApp nudges. Until then, email-only."))
+      el("p", { className: "hint" }, "Install the free ntfy app, subscribe to your private topic, and you'll get a daily push with today's study session. Use 'Send test push now' above to check it's working."))
   );
 }
 
