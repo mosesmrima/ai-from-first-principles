@@ -26,17 +26,14 @@
   // Weekly reminder — Mondays 07:00 UTC. Adjust to your timezone if you like.
   "triggers": { "crons": ["0 7 * * 1"] },
 
-  // Cloudflare Email Sending binding — env.EMAIL.send({...}). No AWS SES, no API keys.
-  // Requires the FROM domain to be onboarded once: `wrangler email sending enable payload.com`.
-  "send_email": [{ "name": "EMAIL" }],
-
   "vars": {
-    // Email reminders need a domain in your Cloudflare account to send FROM.
-    // On the free workers.dev subdomain, email is off — use WhatsApp for reminders instead.
-    "FROM_EMAIL": "reminders@example.com",
+    // Reminder email sends via AWS SES (SigV4 in src/ses.ts). FROM must be a verified
+    // SES identity on paylod.dev. AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY are secrets.
+    "FROM_EMAIL": "reminders@paylod.dev",
     "FROM_NAME": "AI Curriculum Tracker",
     "REMINDER_EMAIL": "mrimamss@gmail.com",
-    "APP_URL": "https://ai-tracker.mrima.workers.dev"
+    "APP_URL": "https://ai-tracker.mrima.workers.dev",
+    "AWS_REGION": "us-east-1"
     // WHATSAPP_* are set later as secrets, once you have a Meta WABA (optional).
   },
 

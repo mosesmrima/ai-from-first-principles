@@ -1,6 +1,7 @@
 // Weekly reminder email via the Cloudflare Email Sending binding (env.EMAIL.send).
 // Best-effort: if the sending domain isn't onboarded yet, we log and no-op rather than throw.
 import type { Timetable } from "./schedule";
+import { sendViaSES, sesConfigured } from "./ses";
 
 export function buildReminder(t: Timetable, appUrl: string) {
   const s = t.status;
@@ -43,21 +44,18 @@ export function buildReminder(t: Timetable, appUrl: string) {
 
 export async function sendReminder(env: any, t: Timetable): Promise<boolean> {
   const { subject, html, text } = buildReminder(t, env.APP_URL || "");
-  try {
-    await env.EMAIL.send({
-      to: env.REMINDER_EMAIL,
-      from: { email: env.FROM_EMAIL, name: env.FROM_NAME || "AI Curriculum Tracker" },
-      subject,
-      html,
-      text,
-    });
-    console.log(`reminder sent to ${env.REMINDER_EMAIL}`);
-    return true;
-  } catch (err) {
-    // Domain not onboarded yet, or transient failure — don't crash the cron.
-    console.error("reminder send failed:", (err as Error)?.message ?? err);
+  if (!sesConfigured(env)) {
+    console.error("reminder send skipped: SES not configured (missing AWS_* secrets)");
     return false;
   }
+  const from = env.FROM_NAME ? `${env.FROM_NAME} <${env.FROM_EMAIL}>` : env.FROM_EMAIL;
+  const res = await sendViaSES(env, { from, to: env.REMINDER_EMAIL, subject, html, text });
+  if (res.ok) {
+    console.log(`reminder sent to ${env.REMINDER_EMAIL} via SES`);
+    return true;
+  }
+  console.error(`SES send failed (${res.status}): ${res.body}`);
+  return false;
 }
 
 // Placeholder for the WhatsApp add-on (Meta WhatsApp Cloud API). No-op until
