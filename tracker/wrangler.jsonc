@@ -29,15 +29,16 @@
   "send_email": [{ "name": "EMAIL" }],
 
   "vars": {
-    "FROM_EMAIL": "track@payload.com",
+    // Email reminders need a domain in your Cloudflare account to send FROM.
+    // On the free workers.dev subdomain, email is off — use WhatsApp for reminders instead.
+    "FROM_EMAIL": "reminders@example.com",
     "FROM_NAME": "AI Curriculum Tracker",
     "REMINDER_EMAIL": "mrimamss@gmail.com",
-    "APP_URL": "https://track.payload.com"
+    "APP_URL": "https://ai-tracker.mrima.workers.dev"
     // WHATSAPP_* are set later as secrets, once you have a Meta WABA (optional).
   },
 
-  "observability": { "enabled": true }
+  "workers_dev": true,
 
-  // Attach a custom domain once you confirm the zone is in THIS Cloudflare account:
-  //   "routes": [{ "pattern": "track.yourdomain.com", "custom_domain": true }]
+  "observability": { "enabled": true }
 }
