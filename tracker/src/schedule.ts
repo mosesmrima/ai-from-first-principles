@@ -128,13 +128,22 @@ export function buildTimetable(all: Milestone[], settings: Settings, now: number
 // A generic session cycle applied within each week. Study days map to steps in
 // order; if a week has more study days than steps, the last (review) repeats.
 const SESSION_CYCLE = [
-  { title: "Watch & absorb", focus: "Watch/read this week's core resource end-to-end. Don't take notes yet — just follow it." },
-  { title: "Deepen & note", focus: "Revisit the hard parts. Write down exactly what still confuses you." },
-  { title: "Build — start", focus: "Open the week's artifact and start coding. Run the tests — they fail; that's your spec." },
-  { title: "Build — push", focus: "Keep building. Make the failing tests pass one at a time." },
-  { title: "Polish & verify", focus: "Finish and clean up. Pass the checkpoint — explain it out loud, no notes." },
-  { title: "Review & log", focus: "Write your note (learned / confused / built), commit, and mark the week done." },
+  { title: "Watch & absorb", hours: 2, focus: "Watch/read this week's core resource end-to-end. Don't take notes yet — just follow it." },
+  { title: "Deepen & note", hours: 2, focus: "Revisit the hard parts + do the math/exercises. Write down exactly what still confuses you." },
+  { title: "Build — start", hours: 2.5, focus: "Open the week's artifact and start coding. Run the tests — they fail; that's your spec." },
+  { title: "Build — push", hours: 2.5, focus: "Keep building. Make the failing tests pass one at a time." },
+  { title: "Polish & verify", hours: 2, focus: "Finish and clean up. Pass the checkpoint — explain it out loud, no notes." },
+  { title: "Review & log", hours: 1.5, focus: "Read a paper (Phase 5+), write your note (learned/confused/built), commit, mark the week done." },
 ];
+const BUFFER_STEP = { title: "Review & buffer", hours: 2, focus: "Catch up on anything unfinished, redo one hard exercise, then rest. You've earned it." };
+
+export interface SessionEntry {
+  index: number;
+  title: string;
+  focus: string;
+  hours: number;
+  isToday: boolean;
+}
 
 export interface DailyPlan {
   isStudyDay: boolean;
@@ -147,6 +156,9 @@ export interface DailyPlan {
   sessionsThisWeek: number;
   sessionTitle: string;
   sessionFocus: string;
+  sessionHours: number;
+  weekSessions: SessionEntry[]; // full daily plan for the current week
+  weekTotalHours: number;
   percent: number;
   behind: number;
 }
@@ -175,16 +187,23 @@ export function dailyPlan(all: Milestone[], settings: Settings, now: number): Da
   }
 
   const isBuffer = slot?.type === "buffer";
-  let sessionTitle: string;
-  let sessionFocus: string;
-  if (isBuffer) {
-    sessionTitle = "Review & buffer";
-    sessionFocus = "Catch up on anything unfinished, redo one hard exercise, then rest. You've earned it.";
-  } else {
-    const step = SESSION_CYCLE[Math.min(Math.max(sessionIndex - 1, 0), SESSION_CYCLE.length - 1)];
-    sessionTitle = step.title;
-    sessionFocus = step.focus;
+  const stepFor = (i: number) =>
+    isBuffer ? BUFFER_STEP : SESSION_CYCLE[Math.min(Math.max(i - 1, 0), SESSION_CYCLE.length - 1)];
+
+  // Full daily plan for this week.
+  const weekSessions: SessionEntry[] = [];
+  for (let i = 1; i <= Math.max(sessionsThisWeek, 1); i++) {
+    const step = stepFor(i);
+    weekSessions.push({
+      index: i,
+      title: step.title,
+      focus: step.focus,
+      hours: step.hours,
+      isToday: isStudyDay && i === sessionIndex,
+    });
   }
+  const weekTotalHours = weekSessions.reduce((a, s) => a + s.hours, 0);
+  const todayStep = stepFor(Math.max(sessionIndex, 1));
 
   return {
     isStudyDay,
@@ -195,8 +214,11 @@ export function dailyPlan(all: Milestone[], settings: Settings, now: number): Da
     isBuffer,
     sessionIndex: Math.max(sessionIndex, 1),
     sessionsThisWeek,
-    sessionTitle,
-    sessionFocus,
+    sessionTitle: todayStep.title,
+    sessionFocus: todayStep.focus,
+    sessionHours: todayStep.hours,
+    weekSessions,
+    weekTotalHours,
     percent: tt.status.percent,
     behind: tt.status.behind,
   };

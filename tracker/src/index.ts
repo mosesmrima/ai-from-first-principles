@@ -53,8 +53,10 @@ async function getState(env: Env) {
     loadSettings(env),
     loadResources(env),
   ]);
-  const schedule = buildTimetable(milestones, settings, Date.now());
-  return { milestones, settings, resources, schedule };
+  const now = Date.now();
+  const schedule = buildTimetable(milestones, settings, now);
+  const daily = dailyPlan(milestones, settings, now);
+  return { milestones, settings, resources, schedule, daily };
 }
 
 const YT = /(?:youtube\.com|youtu\.be)/i;

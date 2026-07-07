@@ -11,9 +11,10 @@ export async function sendNtfy(env: any, plan: DailyPlan): Promise<boolean> {
   if (!env.NTFY_TOPIC) return false;
   const statusLine =
     plan.behind > 0 ? `⚠️ ${plan.behind}w behind` : plan.behind < 0 ? `🚀 ${-plan.behind}w ahead` : `✅ on track`;
+  const hrs = `~${plan.sessionHours}h`;
   const title = plan.isBuffer
-    ? `Review day — ${plan.percent}% done`
-    : `Session ${plan.sessionIndex}/${plan.sessionsThisWeek}: ${plan.sessionTitle}`;
+    ? `Review day (${hrs}) — ${plan.percent}% done`
+    : `Session ${plan.sessionIndex}/${plan.sessionsThisWeek} · ${hrs}: ${plan.sessionTitle}`;
   const message =
     `${plan.weekPhase} — ${plan.weekTitle}\n` +
     `${plan.sessionFocus}\n` +

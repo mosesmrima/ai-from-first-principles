@@ -55,6 +55,37 @@ function phaseOrder() {
 function renderTimetable() {
   const root = $("#tab-timetable");
   root.innerHTML = "";
+
+  // Today + this week's daily session plan (with hours).
+  const d = STATE.daily;
+  if (d) {
+    const label = d.isStudyDay
+      ? `Today · Session ${d.sessionIndex}/${d.sessionsThisWeek} · ~${d.sessionHours}h`
+      : "Today · rest day";
+    const todayCard = el("div", { className: "card", style: "padding:14px;margin-bottom:10px" });
+    todayCard.append(
+      el("div", { className: "cap" }, label),
+      el("div", { style: "font-weight:700;margin:4px 0" }, d.isBuffer ? "Review & buffer week" : d.sessionTitle),
+      el("div", { className: "hint" }, `${d.weekPhase} — ${d.weekTitle}`),
+      el("div", { style: "margin-top:6px" }, d.sessionFocus)
+    );
+    root.append(todayCard);
+
+    root.append(el("div", { className: "phase-h" },
+      el("span", {}, "This week's sessions"), el("span", {}, `~${d.weekTotalHours}h total`)));
+    const wk = el("div", { className: "card", style: "margin-bottom:10px" });
+    for (const ss of d.weekSessions) {
+      const row = el("div", { className: "row" + (ss.isToday ? " current" : "") });
+      row.append(
+        el("span", { className: "idx" }, `S${ss.index} · ~${ss.hours}h`),
+        el("span", { className: "ttl" }, ss.title, el("span", { className: "hint", style: "display:block" }, ss.focus))
+      );
+      wk.append(row);
+    }
+    root.append(wk);
+    root.append(el("div", { className: "phase-h" }, "Full timetable"));
+  }
+
   const byId = Object.fromEntries(STATE.milestones.map((m) => [m.id, m]));
   let lastPhase = null, card = null;
   for (const slot of STATE.schedule.slots) {
