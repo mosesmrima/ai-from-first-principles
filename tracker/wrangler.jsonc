@@ -1,0 +1,43 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ai-tracker",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Serve the static frontend from ./public. The Worker runs first and delegates
+  // any non-/api request to the ASSETS binding (see src/index.ts).
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ai-tracker",
+      "database_id": "a039f75a-9108-4312-947e-ac5a4121307d"
+    }
+  ],
+
+  // Weekly reminder — Mondays 07:00 UTC. Adjust to your timezone if you like.
+  "triggers": { "crons": ["0 7 * * 1"] },
+
+  // Cloudflare Email Sending binding — env.EMAIL.send({...}). No AWS SES, no API keys.
+  // Requires the FROM domain to be onboarded once: `wrangler email sending enable payload.com`.
+  "send_email": [{ "name": "EMAIL" }],
+
+  "vars": {
+    "FROM_EMAIL": "track@payload.com",
+    "FROM_NAME": "AI Curriculum Tracker",
+    "REMINDER_EMAIL": "mrimamss@gmail.com",
+    "APP_URL": "https://track.payload.com"
+    // WHATSAPP_* are set later as secrets, once you have a Meta WABA (optional).
+  },
+
+  "observability": { "enabled": true }
+
+  // Attach a custom domain once you confirm the zone is in THIS Cloudflare account:
+  //   "routes": [{ "pattern": "track.yourdomain.com", "custom_domain": true }]
+}
