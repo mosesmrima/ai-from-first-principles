@@ -12,7 +12,12 @@ from __future__ import annotations
 
 def shape(m: list[list[float]]) -> tuple[int, int]:
     """Return (rows, cols). Raise ValueError if rows are ragged (unequal lengths)."""
-    raise NotImplementedError("Week 1: implement shape()")
+    if not len(m):
+        return (0,0)
+    for i in range(len(m)):
+        if len(m[0]) != len(m[i]):
+            raise ValueError("rows are ragged")
+    return (len(m), len(m[0]))
 
 
 def dot(a: list[float], b: list[float]) -> float:
@@ -20,7 +25,13 @@ def dot(a: list[float], b: list[float]) -> float:
 
     Raise ValueError if the lengths differ.
     """
-    raise NotImplementedError("Week 1: implement dot()")
+    total = 0
+    if len(a) != len(b):
+        raise ValueError("vector lengths differ")
+    
+    for x, y in zip(a, b):
+        total += x * y
+    return total
 
 
 def transpose(m: list[list[float]]) -> list[list[float]]:
@@ -28,7 +39,10 @@ def transpose(m: list[list[float]]) -> list[list[float]]:
 
     transpose([[1, 2, 3], [4, 5, 6]]) -> [[1, 4], [2, 5], [3, 6]]
     """
-    raise NotImplementedError("Week 1: implement transpose()")
+    rows, cols = shape(m)
+    if not rows:
+        return []
+    return [[m[i][j] for i in range(rows)] for j in range(cols)]
 
 
 def matmul(a: list[list[float]], b: list[list[float]]) -> list[list[float]]:
@@ -40,8 +54,19 @@ def matmul(a: list[list[float]], b: list[list[float]]) -> list[list[float]]:
 
     Hint: you can build column j of B with transpose(), then reuse dot().
     """
-    raise NotImplementedError("Week 1: implement matmul()")
-
+    rows_a, cols_a = shape(a)
+    rows_b, cols_b = shape(b)
+    b_t = transpose(b)
+    result = []
+    if cols_a != rows_b:
+        raise ValueError("inner dimensions mismatch")
+    for i in range(rows_a):
+        row = []
+        for j in range(cols_b):
+            row.append(dot(a[i], b_t[j]))
+        result.append(row)
+        
+    return result
 
 if __name__ == "__main__":
     # Quick manual check once implemented.

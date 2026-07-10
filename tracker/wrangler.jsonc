@@ -28,7 +28,12 @@
   "triggers": { "crons": ["0 7 * * *"] },
 
   "vars": {
-    "APP_URL": "https://ai-tracker.mrima.workers.dev"
+    "APP_URL": "https://ai-tracker.mrima.workers.dev",
+    // Notes are committed straight to this repo via the GitHub Contents API.
+    // GITHUB_TOKEN is a secret (fine-grained PAT, Contents: read+write on this repo only).
+    "GITHUB_OWNER": "mosesmrima",
+    "GITHUB_REPO": "ai-from-first-principles",
+    "GITHUB_BRANCH": "master"
     // NTFY_TOPIC is a secret (the reminder push topic). Set via `wrangler secret put`.
   },
 

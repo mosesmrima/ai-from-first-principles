@@ -1,6 +1,8 @@
 // AI Curriculum Tracker — Worker. Single-model: ordered STEPS → sessions → "next".
 import { computePlan, type Settings } from "./plan";
 import { sendSessionPush } from "./ntfy";
+import { WEEKS } from "./curriculum";
+import { commitFile, githubConfigured } from "./github";
 
 export interface Env {
   DB: D1Database;
@@ -8,6 +10,24 @@ export interface Env {
   APP_URL: string;
   ACCESS_PASSWORD?: string;
   NTFY_TOPIC?: string;
+  GITHUB_TOKEN?: string;
+  GITHUB_OWNER?: string;
+  GITHUB_REPO?: string;
+  GITHUB_BRANCH?: string;
+}
+
+/** The step id of a week's "note" step, e.g. week01.9 — used to auto-tick on push. */
+function noteStepId(weekId: string): string | null {
+  const w = WEEKS.find((x) => x.id === weekId);
+  if (!w) return null;
+  const i = w.steps.findIndex((s) => s.kind === "note");
+  return i >= 0 ? `${weekId}.${i}` : null;
+}
+
+function noteTemplate(weekId: string): string {
+  const w = WEEKS.find((x) => x.id === weekId);
+  const title = w ? w.title : weekId;
+  return `# ${weekId} — ${title}\n\n- **Learned:**\n\n- **Confused by:**\n\n- **Built:**\n\n- **Next:**\n`;
 }
 
 const json = (data: unknown, status = 200) =>
@@ -34,10 +54,17 @@ async function loadDone(env: Env): Promise<Set<string>> {
   return new Set((rows.results ?? []).map((r) => r.step_id));
 }
 
+async function loadNote(env: Env, weekId: string): Promise<string> {
+  const row = await env.DB.prepare("SELECT body FROM notes WHERE week_id = ?").bind(weekId).first<{ body: string }>();
+  return row?.body ?? noteTemplate(weekId);
+}
+
 async function getState(env: Env) {
   const [settings, done] = await Promise.all([loadSettings(env), loadDone(env)]);
   const plan = computePlan(done, settings, Date.now());
-  return { settings, plan };
+  const weekId = plan.currentWeekId;
+  const note = weekId ? { weekId, body: await loadNote(env, weekId) } : null;
+  return { settings, plan, note, githubReady: githubConfigured(env) };
 }
 
 async function handleApi(req: Request, env: Env, url: URL): Promise<Response> {
@@ -79,6 +106,48 @@ async function handleApi(req: Request, env: Env, url: URL): Promise<Response> {
     }
     if (stmts.length) await env.DB.batch(stmts);
     return json(await getState(env));
+  }
+
+  // PUT /api/notes/:weekId  body: { body, push?: boolean }
+  // Saves the note to D1 and (optionally) commits it to GitHub as notes/<weekId>.md
+  const note = path.match(/^\/api\/notes\/([\w-]+)$/);
+  if (note && method === "PUT") {
+    const weekId = note[1];
+    const b = (await req.json().catch(() => ({}))) as { body?: string; push?: boolean };
+    const text = (b.body ?? "").trim();
+    if (!text) return json({ error: "note is empty" }, 400);
+
+    await env.DB.prepare(
+      "INSERT INTO notes (week_id, body, updated_at) VALUES (?, ?, ?) " +
+        "ON CONFLICT(week_id) DO UPDATE SET body = excluded.body, updated_at = excluded.updated_at"
+    )
+      .bind(weekId, text, new Date().toISOString())
+      .run();
+
+    let pushed = false;
+    let commitUrl = "";
+    let error = "";
+    if (b.push) {
+      if (!githubConfigured(env)) {
+        error = "GITHUB_TOKEN not set — saved locally only.";
+      } else {
+        try {
+          const res = await commitFile(env, `notes/${weekId}.md`, text + "\n", `notes(${weekId}): update learning note`);
+          pushed = true;
+          commitUrl = res.commitUrl;
+          // Reward: tick the week's note step automatically.
+          const sid = noteStepId(weekId);
+          if (sid) {
+            await env.DB.prepare("INSERT OR REPLACE INTO step_progress (step_id, done_at) VALUES (?, ?)")
+              .bind(sid, new Date().toISOString())
+              .run();
+          }
+        } catch (err) {
+          error = (err as Error)?.message ?? "push failed";
+        }
+      }
+    }
+    return json({ saved: true, pushed, commitUrl, error, ...(await getState(env)) });
   }
 
   // POST /api/test-reminder — push the current session to your phone now

@@ -80,6 +80,50 @@ function renderNow() {
   root.append(card);
   root.append(el("p", { className: "hint", style: "margin-top:8px" },
     `≈ your ${p.sessionMinutes}-min sitting. Do what fits — unfinished steps carry to next time.`));
+
+  renderNoteEditor(root);
+}
+
+function renderNoteEditor(root) {
+  const n = STATE.note;
+  if (!n) return;
+  root.append(el("div", { className: "phase-h" },
+    el("span", {}, "📝 This week's note"), el("span", {}, `notes/${n.weekId}.md`)));
+
+  const ta = el("textarea", { value: n.body, spellcheck: true });
+  ta.style.cssText = "width:100%;min-height:190px;padding:12px;border-radius:10px;border:1px solid var(--line);" +
+    "background:var(--card);color:var(--ink);font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;resize:vertical;box-sizing:border-box";
+
+  const status = el("span", { className: "hint" });
+  const saveBtn = el("button", { className: "btn" }, "Save & push to GitHub");
+  const localBtn = el("button", { className: "btn ghost" }, "Save only");
+
+  const save = async (push) => {
+    saveBtn.disabled = localBtn.disabled = true;
+    status.textContent = push ? "Committing…" : "Saving…";
+    try {
+      const r = await api(`/api/notes/${encodeURIComponent(n.weekId)}`, {
+        method: "PUT", body: JSON.stringify({ body: ta.value, push }),
+      });
+      if (r.error) { status.innerHTML = `⚠️ ${r.error}`; }
+      else if (r.pushed) {
+        status.innerHTML = `✅ Committed — <a href="${r.commitUrl}" target="_blank" rel="noopener">view on GitHub ↗</a>`;
+      } else { status.textContent = "✅ Saved."; }
+      if (r.plan) { STATE = r; renderStatus(); renderPlan(); }
+    } catch (e) {
+      status.textContent = "⚠️ " + e.message;
+    }
+    saveBtn.disabled = localBtn.disabled = false;
+  };
+  saveBtn.onclick = () => save(true);
+  localBtn.onclick = () => save(false);
+
+  const box = el("div", { className: "card", style: "padding:14px" });
+  box.append(ta, el("div", { className: "form-row", style: "margin-top:10px" }, saveBtn, localBtn, status));
+  if (!STATE.githubReady) {
+    box.append(el("p", { className: "hint" }, "GitHub push not configured — set the GITHUB_TOKEN secret to enable auto-commit."));
+  }
+  root.append(box);
 }
 
 function renderPlan() {
