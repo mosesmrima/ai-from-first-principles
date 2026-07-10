@@ -1,21 +1,8 @@
 # Week 3 — Eigenvalues, Eigenvectors, SVD intuition
 
-**Topics:** eigenvalues/eigenvectors, what they mean geometrically, intuition for SVD.
+**Artifact:** `pca_intuition.py` — generate 2D correlated data, compute the covariance matrix's eigenvectors/eigenvalues, plot them over the data, and project onto the top component.
 
-**Watch:** 3Blue1Brown — *Essence of Linear Algebra*, chapter on eigenvectors/eigenvalues.
-**Read:** MML book §4 (eigendecomposition, SVD).
+**Do the steps in the app** → open **Now** at https://ai-tracker.mrima.workers.dev
+(exact videos, time estimates, and the order live there — this README is just a local reference).
 
-## 🛠 Build
-A **PCA intuition notebook** (`pca_intuition.ipynb` — create it with `uv run jupyter lab`):
-- Generate 2D correlated data.
-- Compute the covariance matrix and its eigenvectors/eigenvalues (`numpy.linalg.eig`).
-- Plot the eigenvectors over the data — see that the top eigenvector points along maximum variance.
-- Project the data onto the top component.
-
-## ✅ Checkpoint
-Explain what an eigenvector *is* (a direction the transformation only stretches, doesn't rotate)
-and why PCA's principal components are the covariance matrix's eigenvectors.
-
-```bash
-uv run python track.py done week03
-```
+**Checkpoint:** Explain what an eigenvector *is* (a direction the transformation only stretches, doesn't rotate) and why PCA's principal components are the covariance matrix's eigenvectors.

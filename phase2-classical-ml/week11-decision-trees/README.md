@@ -1,5 +1,7 @@
 # Week 11 — Decision Trees from Scratch
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Build:** a decision-tree classifier — recursive splitting on the feature/threshold that
 maximizes information gain (entropy or Gini). Implement `fit`, `predict`, and a `max_depth` stop.
 

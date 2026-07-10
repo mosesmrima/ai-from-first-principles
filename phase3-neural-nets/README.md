@@ -1,5 +1,7 @@
 # Phase 3 — Neural Networks From First Principles + PyTorch (Weeks 17–28)
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **The most important phase.** Build backprop, MLPs, and a tiny framework yourself. Do **not**
 start with LangChain or ChatGPT wrappers. Build everything.
 

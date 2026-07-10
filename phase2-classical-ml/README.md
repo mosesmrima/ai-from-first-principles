@@ -1,5 +1,7 @@
 # Phase 2 — Classical ML & Classical AI (Weeks 9–16)
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Goal:** understand the pre-deep-learning landscape. This context makes everything later click.
 Implement the core algorithms from scratch — then you'll know what the libraries actually do.
 

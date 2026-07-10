@@ -1,5 +1,7 @@
 # Week 15 — Classical AI: Search & A*
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Build:** implement **A\*** pathfinding on a grid with obstacles, plus BFS and Dijkstra for
 comparison. Visualize the explored frontier and the final path. Try different heuristics
 (Manhattan vs. Euclidean) and watch how they change what gets expanded.

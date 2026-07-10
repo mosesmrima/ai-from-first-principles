@@ -1,5 +1,7 @@
 # Week 13 — K-Means from Scratch
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Build:** k-means clustering — random init, assign points to nearest centroid, recompute
 centroids, repeat to convergence. Plot the clusters; try the elbow method to pick k. Also sketch
 **naive Bayes** for a text classification toy.

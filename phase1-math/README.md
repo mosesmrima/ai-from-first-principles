@@ -1,5 +1,7 @@
 # Phase 1 — Math for Machine Learning (Weeks 1–8)
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Goal:** enough linear algebra, calculus, and probability to read papers and implement backprop.
 You do not need PhD math. You need to be unafraid of the notation.
 

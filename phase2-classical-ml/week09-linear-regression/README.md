@@ -1,5 +1,7 @@
 # Week 9 — Linear Regression from Scratch
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Build:** linear regression both ways — the closed-form normal equation
 `w = (XᵀX)⁻¹ Xᵀy` **and** gradient descent — and confirm they agree.
 

@@ -11,6 +11,14 @@ This repo is the merge of two roadmaps into a single Phase 0–10 plan you can a
 
 ---
 
+## How to track your progress
+
+Use the **web tracker** — it holds your ordered daily steps (exact videos, time estimates, checkpoints) and always shows what to do next: **https://ai-tracker.mrima.workers.dev** (open "Now").
+
+The local `track.py` CLI + `PROGRESS.md` are an offline alternative. **The web app is primary — don't follow both.**
+
+---
+
 ## Quickstart
 
 ```bash

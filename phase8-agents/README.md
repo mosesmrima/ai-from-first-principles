@@ -1,5 +1,7 @@
 # Phase 8 — Agentic Systems (Weeks 69–76)
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Goal:** the current frontier. Start with **raw Python loops before any framework.**
 
 **Read this first:** Anthropic — *Building Effective Agents*

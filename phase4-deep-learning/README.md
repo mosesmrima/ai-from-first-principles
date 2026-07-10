@@ -1,5 +1,7 @@
 # Phase 4 — Deep Learning Breadth (Weeks 29–36)
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Goal:** vision and sequence models before going deep on LLMs. Build, visualize, classify.
 
 **Dependencies:** `uv sync --extra dl --extra nlp`.

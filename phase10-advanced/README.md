@@ -1,5 +1,7 @@
 # Phase 10 — Advanced Systems (Year 2+)
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Goal:** once everything above is solid, go deep on infrastructure and research. This is where
 you move from "can build LLMs" to "can build them at scale and contribute new ideas."
 

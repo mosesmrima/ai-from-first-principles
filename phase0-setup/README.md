@@ -1,5 +1,7 @@
 # Phase 0 — Setup (Week 0)
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Goal:** a working environment and the habits that make 18 months stick.
 
 ## Do this, in order

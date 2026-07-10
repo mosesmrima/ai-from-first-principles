@@ -1,5 +1,7 @@
 # Week 10 — Logistic Regression from Scratch
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Build:** logistic regression with gradient descent on log-loss; evaluate with accuracy,
 precision/recall, and a confusion matrix you compute yourself. Add k-fold cross-validation.
 

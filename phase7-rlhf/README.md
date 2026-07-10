@@ -1,5 +1,7 @@
 # Phase 7 — RLHF, Post-Training & Evals (Weeks 61–68)
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Goal:** how model behaviour is *shaped*. This is what separates real practitioners from people
 who think "ChatGPT" is the whole story.
 

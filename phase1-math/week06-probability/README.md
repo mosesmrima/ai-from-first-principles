@@ -1,20 +1,10 @@
 # Week 6 — Probability & Bayes
 
-**Topics:** probability basics, conditional probability, Bayes' theorem, the law of large numbers.
+**Artifact:** `coin_flips.py` — coin-flip simulations that make the law of large numbers visible (empirical probability → true probability as N grows).
 
-**Watch:** StatQuest probability playlist; Harvard Stat 110 (Blitzstein) early lectures.
+**Do the steps in the app** → open **Now** at https://ai-tracker.mrima.workers.dev
+(exact videos, time estimates, and the order live there — this README is just a local reference).
 
-## 🛠 Build
-Coin-flip simulations in `coin_flips.py`. Implement the functions so the tests pass, then use
-them to *see* the law of large numbers (empirical probability → true probability as N grows).
+**Verify:** `uv run pytest phase1-math/week06-probability/`
 
-```bash
-uv run pytest phase1-math/week06-probability/   # RED
-# implement empirical_probability(), simulate_flips(), running_estimates()
-uv run pytest phase1-math/week06-probability/   # GREEN
-uv run python track.py done week06
-```
-
-## ✅ Checkpoint
-State Bayes' theorem and work one example by hand (e.g. the classic medical-test / false-positive
-problem). Explain why a 99%-accurate test for a rare disease still yields mostly false positives.
+**Checkpoint:** State Bayes' theorem and work one example by hand (e.g. the classic medical-test / false-positive problem). Explain why a 99%-accurate test for a rare disease still yields mostly false positives.

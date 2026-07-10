@@ -1,5 +1,7 @@
 # Phase 6 — LLM Engineering (Weeks 49–60)
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Goal:** stop being a prompt engineer. Retrieval, evaluation, fine-tuning, and inference —
 the skills that turn a model into a product.
 

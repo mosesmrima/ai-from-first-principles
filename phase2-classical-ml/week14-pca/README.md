@@ -1,5 +1,7 @@
 # Week 14 — PCA from Scratch
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Build:** PCA via the covariance matrix's eigenvectors (reuse your Week 3 intuition): center the
 data, compute covariance, eigen-decompose, project onto the top-k components. Plot explained
 variance. Also study the **bias-variance tradeoff** and **regularization** this week.

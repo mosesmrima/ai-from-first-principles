@@ -1,5 +1,7 @@
 # Phase 9 — Research Apprenticeship (Weeks 77+, ongoing)
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Goal:** become someone who reads, reproduces, and writes. This is a *practice*, not a phase
 you finish. Start the weekly habit during Phase 5 and never stop.
 

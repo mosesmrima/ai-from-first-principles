@@ -1,5 +1,7 @@
 # Phase 5 — Transformers & LLMs (Weeks 37–48)
 
+> **▶ Your ordered steps live in the tracker app → https://ai-tracker.mrima.workers.dev (open "Now"). This README is reference.**
+
 **Goal:** where modern AI lives. Build a GPT end to end, from attention to text generation.
 
 **The spine:** Stanford **CS336 — Language Modeling from Scratch** (stanford-cs336.github.io) —
