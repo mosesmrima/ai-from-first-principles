@@ -17,12 +17,10 @@
    uv run jupyter lab                    # launches, then Ctrl-C to close
    ```
 
-3. **Watch** all of **3Blue1Brown — Essence of Linear Algebra** (it's short and worth every minute).
+   Week 0 is **setup only** — no course videos yet. (Essence of Linear Algebra is
+   Week 1; Karpathy's micrograd is Phase 3 / Week 17. Don't watch them here.)
 
-4. **Skim** Karpathy *Zero to Hero* lesson 1 (micrograd). You'll build it for real in Phase 3 —
-   just get a feel for where this is going.
-
-5. **Write your first note** in `notes/weekly-notes.md` (already has a Week 0 stub).
+3. **Write your first note** in `notes/weekly-notes.md` (already has a Week 0 stub).
 
 6. **Mark it done**
    ```bash

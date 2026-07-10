@@ -55,3 +55,9 @@ select, input[type=text], input[type=date], input[type=number] {
 .btn.ghost { background:transparent; color:var(--accent); border:1px solid var(--accent); }
 label.field { display:flex; flex-direction:column; gap:4px; font-size:13px; color:var(--muted); }
 .hint { color:var(--muted); font-size:12px; }
+.badge { width:22px; text-align:center; font-size:14px; flex:0 0 auto; }
+.row.step { align-items:flex-start; }
+.row.step .ttl { line-height:1.35; }
+.openbtn { color:var(--accent); text-decoration:none; font-weight:800; padding:0 6px; flex:0 0 auto; }
+.card.muted { opacity:.55; }
+.card.muted .row { padding:6px 14px; }
