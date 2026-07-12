@@ -108,6 +108,21 @@ function noteTemplate(weekId: string): string {
   return `# ${weekId} — ${w ? w.title : weekId}\n\n- **Learned:**\n\n- **Confused by:**\n\n- **Built:**\n\n- **Next:**\n`;
 }
 
+function genNtfyTopic(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(6));
+  return "aitracker-" + [...bytes].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+async function ensureNtfyTopic(env: Env, userId: number, settings: Settings): Promise<Settings> {
+  if (settings.ntfy_topic) return settings;
+  const topic = genNtfyTopic();
+  await env.DB.prepare(
+    "INSERT INTO user_settings (user_id, key, value) VALUES (?, 'ntfy_topic', ?) " +
+      "ON CONFLICT(user_id, key) DO UPDATE SET value = excluded.value"
+  ).bind(userId, topic).run();
+  return { ...settings, ntfy_topic: topic };
+}
+
 async function getUser(env: Env, userId: number): Promise<User | null> {
   return env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(userId).first<User>();
 }
@@ -129,7 +144,8 @@ async function ghEnvFor(env: Env, user: User): Promise<GhEnv> {
 }
 
 async function getState(env: Env, user: User) {
-  const [settings, done] = await Promise.all([loadSettings(env, user.id), loadDone(env, user.id)]);
+  let [settings, done] = await Promise.all([loadSettings(env, user.id), loadDone(env, user.id)]);
+  settings = await ensureNtfyTopic(env, user.id, settings);
   const plan = computePlan(done, settings, Date.now());
   const weekId = plan.currentWeekId;
   const note = weekId ? { weekId, body: await loadNote(env, user.id, weekId) } : null;
@@ -201,7 +217,13 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
   // ---- public: register / login ----
   if (path === "/api/register" && method === "POST") {
     const b = (await req.json().catch(() => ({}))) as { invite?: string; name?: string; email?: string; password?: string };
-    if (!env.INVITE_CODE || b.invite !== env.INVITE_CODE) return json({ error: "bad invite code" }, 403);
+    const invite = (b.invite ?? "").trim();
+    // Invite code is a fast-pass, not a wall: correct code -> instantly active;
+    // no code -> pending admin approval; wrong code -> explicit error.
+    if (invite && (!env.INVITE_CODE || invite !== env.INVITE_CODE)) {
+      return json({ error: "that invite code isn't right — leave it blank to request access instead" }, 403);
+    }
+    const autoIn = !!invite;
     const name = (b.name ?? "").trim();
     const email = (b.email ?? "").trim();
     if (!/^[\w .-]{2,24}$/.test(name)) return json({ error: "name must be 2–24 letters/numbers" }, 400);
@@ -212,19 +234,35 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
     const dupe = await env.DB.prepare("SELECT id FROM users WHERE lower(name) = lower(?)").bind(name).first();
     if (dupe) return json({ error: "name already taken" }, 409);
     const { salt, hash } = await hashPassword(b.password);
-    await env.DB.prepare(
-      "INSERT INTO users (name, email, status, pass_salt, pass_hash, created_at) VALUES (?, ?, 'pending', ?, ?, ?)"
-    ).bind(name, email, salt, hash, new Date().toISOString()).run();
-    // admin email (best-effort) + phone push to the admin's topic — after the response
+    const res = await env.DB.prepare(
+      "INSERT INTO users (name, email, status, pass_salt, pass_hash, created_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id"
+    ).bind(name, email, autoIn ? "active" : "pending", salt, hash, new Date().toISOString()).first<{ id: number }>();
+    await env.DB.prepare("INSERT INTO user_settings (user_id, key, value) VALUES (?, 'ntfy_topic', ?)")
+      .bind(res!.id, genNtfyTopic()).run();
+
     const adminSettings = await loadSettings(env, 1);
+    if (autoIn) {
+      // straight in: session cookie + welcome email + FYI to the admin
+      ctx.waitUntil(
+        Promise.all([
+          notifyApproved(env, name, email),
+          (async () => {
+            const { sendAlert } = await import("./ntfy");
+            await sendAlert(adminSettings.ntfy_topic || env.NTFY_TOPIC, "New member joined (invite code)",
+              `${name} <${email}> is in — no approval needed`, env.APP_URL, adminSettings.ntfy_server).catch(() => {});
+          })(),
+        ])
+      );
+      const sid = await makeSession(secret, res!.id);
+      return json({ ok: true }, 200, { "set-cookie": setCookie(sid) });
+    }
     ctx.waitUntil(
       Promise.all([
         notifySignup(env, name, email, adminSettings.ntfy_topic || env.NTFY_TOPIC, adminSettings.ntfy_server),
         notifyPending(env, name, email),
       ])
     );
-    // No session yet — the account must be approved by the admin first.
-    return json({ ok: true, pending: true, message: "Account created — waiting for approval from the group admin." });
+    return json({ ok: true, pending: true, message: "Request received — the admin will review it. Watch your email." });
   }
 
   if (path === "/api/login" && method === "POST") {
@@ -452,9 +490,10 @@ button:hover{background:#8b96f0}.err{color:#d98a7a;font-size:13px;min-height:18p
 <input id="li-name" placeholder="Name or email" autocomplete="username" autofocus>
 <input id="li-pass" type="password" placeholder="Password" autocomplete="current-password">
 <button>Sign in</button><div class="err" id="e1"></div>
-<p class="alt">New here? <a onclick="flip(true)">Join with an invite code</a></p></form>
+<p class="alt">New here? <a onclick="flip(true)">Join the study group</a></p></form>
 <form id="f-reg" class="hide" onsubmit="return go(event,'register')"><h1>Join the study group</h1>
-<input id="r-invite" placeholder="Invite code">
+<p style="font-size:12.5px;color:#9aa1ab;margin:0 0 10px">Have an invite code? You're in instantly. No code? Sign up anyway — the admin approves requests, watch your email.</p>
+<input id="r-invite" placeholder="Invite code (optional — instant access)">
 <input id="r-name" placeholder="Display name (shown on the leaderboard)" autocomplete="username">
 <input id="r-email" type="email" placeholder="Email (so the admin knows who you are)" autocomplete="email">
 <input id="r-pass" type="password" placeholder="Choose a password (6+ chars)" autocomplete="new-password">
