@@ -30,6 +30,7 @@ export interface Env {
 }
 
 const MAX_USERS = 50;
+const INVITE_MAX_USES = 10; // after this, the code stops working (requests still allowed)
 const COOKIE = "ai_tracker_session";
 
 interface User {
@@ -223,6 +224,12 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
     if (invite && (!env.INVITE_CODE || invite !== env.INVITE_CODE)) {
       return json({ error: "that invite code isn't right — leave it blank to request access instead" }, 403);
     }
+    if (invite) {
+      const used = await env.DB.prepare("SELECT COUNT(*) AS n FROM users WHERE joined_via_invite = 1").first<{ n: number }>();
+      if ((used?.n ?? 0) >= INVITE_MAX_USES) {
+        return json({ error: "this invite code has reached its limit — sign up without it to request access" }, 403);
+      }
+    }
     const autoIn = !!invite;
     const name = (b.name ?? "").trim();
     const email = (b.email ?? "").trim();
@@ -237,6 +244,7 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
     const res = await env.DB.prepare(
       "INSERT INTO users (name, email, status, pass_salt, pass_hash, created_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id"
     ).bind(name, email, autoIn ? "active" : "pending", salt, hash, new Date().toISOString()).first<{ id: number }>();
+    if (autoIn) await env.DB.prepare("UPDATE users SET joined_via_invite = 1 WHERE id = ?").bind(res!.id).run();
     await env.DB.prepare("INSERT INTO user_settings (user_id, key, value) VALUES (?, 'ntfy_topic', ?)")
       .bind(res!.id, genNtfyTopic()).run();
 
@@ -322,7 +330,8 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
         "(SELECT MAX(done_at) FROM user_steps s WHERE s.user_id = u.id) AS last_active " +
         "FROM users u ORDER BY u.id"
       ).all()).results ?? [];
-      return json({ users: rows, maxUsers: MAX_USERS, invite: env.INVITE_CODE ?? null });
+      const inviteUsed = await env.DB.prepare("SELECT COUNT(*) AS n FROM users WHERE joined_via_invite = 1").first<{ n: number }>();
+      return json({ users: rows, maxUsers: MAX_USERS, invite: env.INVITE_CODE ?? null, inviteUsed: inviteUsed?.n ?? 0, inviteMax: INVITE_MAX_USES });
     }
     const del = path.match(/^\/api\/admin\/users\/(\d+)$/);
     if (del && method === "DELETE") {

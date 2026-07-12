@@ -1456,7 +1456,8 @@ async function loadAdminUsers(holder) {
   const meta = document.createElement("p");
   meta.className = "field-hint";
   meta.innerHTML = data.users.filter(u => u.status !== "revoked").length + "/" + data.maxUsers +
-    " seats used" + (data.invite ? ' \u00b7 invite code: <code>' + esc(data.invite) + "</code>" : "");
+    " seats used" + (data.invite ? ' \u00b7 invite code: <code>' + esc(data.invite) + "</code> (" +
+    (data.inviteUsed || 0) + "/" + (data.inviteMax || 10) + " uses)" : "");
   holder.append(meta);
   data.users.forEach(u => {
     const row = document.createElement("div");
