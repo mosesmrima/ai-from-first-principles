@@ -1686,6 +1686,7 @@ $("#hamburger").addEventListener("click", () => {
   $("#drawer").hidden ? openDrawer() : closeDrawer();
 });
 $("#drawer-backdrop").addEventListener("click", closeDrawer);
+$("#drawer-close").addEventListener("click", closeDrawer);
 document.querySelectorAll("#drawer [data-tab]").forEach(item => {
   item.addEventListener("click", () => switchTab(item.dataset.tab));
 });
