@@ -21,14 +21,21 @@
     <button class="tab is-active" role="tab" aria-selected="true" data-tab="now" id="tab-now">Now</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="plan" id="tab-plan">Plan</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="board" id="tab-board">Board</button>
-    <button class="tab" role="tab" aria-selected="false" data-tab="settings" id="tab-settings">Settings</button>
+    <button class="tab" id="tab-more" aria-haspopup="menu" aria-expanded="false">More</button>
   </nav>
+  <div id="more-menu" class="more-menu" role="menu" hidden>
+    <button role="menuitem" data-tab="badges">Badges</button>
+    <button role="menuitem" data-tab="settings">Settings</button>
+    <button role="menuitem" data-tab="admin" id="menu-admin" hidden>Admin</button>
+  </div>
 
   <main id="root">
     <section id="view-now" class="view" role="tabpanel" aria-labelledby="tab-now"></section>
     <section id="view-plan" class="view" role="tabpanel" aria-labelledby="tab-plan" hidden></section>
     <section id="view-board" class="view" role="tabpanel" aria-labelledby="tab-board" hidden></section>
-    <section id="view-settings" class="view" role="tabpanel" aria-labelledby="tab-settings" hidden></section>
+    <section id="view-badges" class="view" role="tabpanel" hidden></section>
+    <section id="view-settings" class="view" role="tabpanel" hidden></section>
+    <section id="view-admin" class="view" role="tabpanel" hidden></section>
   </main>
 
   <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>

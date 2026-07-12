@@ -428,7 +428,7 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
 
   if (path === "/api/settings" && method === "PUT") {
     const b = (await req.json().catch(() => ({}))) as Record<string, string>;
-    const allowed = ["start_date", "session_minutes", "study_days", "reminder_enabled", "timezone", "ntfy_topic", "ntfy_server"];
+    const allowed = ["start_date", "session_minutes", "study_days", "reminder_enabled", "timezone", "ntfy_topic", "ntfy_server", "onboarded"];
     const stmts = [];
     for (const k of allowed) {
       if (b[k] !== undefined) {

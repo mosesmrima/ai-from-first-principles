@@ -1256,3 +1256,63 @@ svg { display: block; }
   .step-link, .openbtn { padding: 4px 6px; }
   .week summary { padding: 15px 14px; }
 }
+
+/* ---------- prominent resource buttons ---------- */
+.step-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+  padding: 7px 13px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in oklab, var(--accent) 45%, transparent);
+  background: var(--accent-dim);
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 130ms ease, border-color 130ms ease;
+}
+.step-open:hover { background: color-mix(in oklab, var(--accent) 22%, transparent); border-color: var(--accent); text-decoration: none; color: var(--accent-strong); }
+.step-open svg:last-child { width: 12px; height: 12px; opacity: 0.7; }
+.step.is-done .step-open { opacity: 0.6; }
+@media (pointer: coarse) { .step-open { padding: 9px 15px; } }
+
+/* tabs: flex so the admin tab can appear/disappear cleanly */
+.tabs { display: flex; }
+.tabs .tab { flex: 1; }
+.tabs .tab[hidden] { display: none; }
+
+/* onboarding card */
+.onboard-card { text-align: left; align-items: stretch; max-width: 400px; }
+.onboard-card h3 { text-align: left; }
+.onboard-body { font-size: 13.5px; color: var(--text-muted); display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.onboard-body p { margin: 0; }
+.onboard-body code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+/* ---------- More menu ---------- */
+.more-menu {
+  position: relative;
+  max-width: 640px;
+  margin: -14px auto 14px;
+  padding: 0 16px;
+}
+.more-menu:not([hidden]) {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.more-menu button {
+  appearance: none;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 550;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.more-menu button:hover { border-color: var(--accent); color: var(--accent-strong); }
+.more-menu button[hidden] { display: none; }

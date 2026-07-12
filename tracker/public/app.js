@@ -647,11 +647,12 @@ function stepRow(step, opts) {
   html += '<div class="step-title">' + esc(step.title) + "</div>";
   html += '<div class="step-meta"><span class="num">' + fmtMin(step.minutes) + "</span>";
   if (opts.showWeek && step.weekTitle) html += "<span>" + esc(step.weekTitle) + "</span>";
-  if (step.url) {
-    html += '<a class="step-link" href="' + esc(step.url) + '" target="_blank" rel="noopener">open ' +
-      ICONS.external + "</a>";
-  }
   html += "</div>";
+  if (step.url) {
+    const label = step.kind === "watch" ? "Watch" : (step.kind === "read" || step.kind === "paper") ? "Read" : "Open resource";
+    html += '<a class="step-open" href="' + esc(step.url) + '" target="_blank" rel="noopener">' +
+      kindIcon(step.kind) + "<span>" + label + "</span>" + ICONS.external + "</a>";
+  }
   body.innerHTML = html;
 
   li.append(check, icon, body);
@@ -996,19 +997,13 @@ function renderSettings() {
   view.append(card);
   view.append(repoCard());
   view.append(githubCard());
-  if (STATE.user && STATE.user.isAdmin) {
-    const admin = document.createElement("div");
-    admin.className = "settings-card";
-    admin.style.marginTop = "12px";
-    admin.innerHTML = '<div class="field"><span class="field-label">Admin — members</span><p class="field-hint">Approve pending signups, revoke inactive accounts.</p></div>';
-    const holder = document.createElement("div");
-    holder.id = "admin-users";
-    holder.innerHTML = '<p class="field-hint">Loading…</p>';
-    admin.append(holder);
-    view.append(admin);
-    loadAdminUsers(holder);
-  }
   view.append(accountCard());
+}
+
+function renderBadges() {
+  const view = $("#view-badges");
+  if (!view) return;
+  view.textContent = "";
   view.append(badgesCard());
 }
 
@@ -1442,6 +1437,25 @@ async function renderBoard() {
 
 /* ================= admin ================= */
 
+function renderAdmin() {
+  const view = $("#view-admin");
+  if (!view) return;
+  view.textContent = "";
+  const card = document.createElement("div");
+  card.className = "settings-card";
+  card.innerHTML = '<div class="field"><span class="field-label">Members</span><p class="field-hint">Approve pending signups, revoke or delete accounts. Inactivity runs itself: nudge at 7 days idle, disable at 14, delete at 21.</p></div>';
+  const holder = document.createElement("div");
+  holder.innerHTML = '<p class="field-hint">Loading\u2026</p>';
+  card.append(holder);
+  view.append(card);
+  loadAdminUsers(holder);
+}
+
+function applyRoleUi() {
+  const t = document.getElementById("menu-admin");
+  if (t) t.hidden = !(STATE && STATE.user && STATE.user.isAdmin);
+}
+
 async function loadAdminUsers(holder) {
   let data;
   try {
@@ -1545,21 +1559,127 @@ function adminBtn(label, id, status, holder) {
   return b;
 }
 
+/* ================= onboarding (first visit) ================= */
+
+function maybeOnboard() {
+  if (!STATE || STATE.revoked || OFFLINE) return;
+  if ((STATE.settings && STATE.settings.onboarded) === "1") return;
+  showOnboarding();
+}
+
+function showOnboarding() {
+  const repo = STATE.curriculumRepo || "#";
+  const topic = (STATE.settings && STATE.settings.ntfy_topic) || "";
+  const cards = [
+    {
+      title: "Welcome, " + esc(STATE.user.name),
+      body: "<p>This app holds your entire AI curriculum as small, ordered steps.</p>" +
+        "<p><strong>The one habit:</strong> open the <strong>Now</strong> tab, do the top step, tick it. " +
+        "The app always knows what's next \u2014 you never have to plan.</p>" +
+        "<p>Steps with a <strong>Watch</strong> or <strong>Read</strong> button link straight to the exact free resource.</p>",
+    },
+    {
+      title: "Get the exercises (recommended)",
+      body: "<p>The build steps reference files in a GitHub repo.</p>" +
+        '<p><a href="' + repo + '/fork" target="_blank" rel="noopener">Fork the starter repo \u2197</a>, clone your fork, and run <code>bash setup.sh</code> inside it.</p>' +
+        "<p>You can do this later \u2014 the link also lives in Settings.</p>",
+    },
+    {
+      title: "Phone reminders (optional)",
+      body: "<p>One push each study morning with your exact next steps.</p>" +
+        '<p>Install the free <strong>ntfy</strong> app (<a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> \u00b7 <a href="https://apps.apple.com/us/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a>) and subscribe to your personal topic:</p>' +
+        '<pre class="clone-box" style="user-select:all">' + esc(topic) + "</pre>" +
+        "<p>Full guide + test button in <strong>Settings</strong>.</p>",
+    },
+    {
+      title: "Notes that build your portfolio (optional)",
+      body: "<p>Each week you write a short note (learned / confused / built). " +
+        "Connect a GitHub token in <strong>Settings</strong> and notes commit to your repo automatically \u2014 " +
+        "a public record of your progress.</p>" +
+        "<p>Totally optional; notes save in the app either way.</p>",
+    },
+  ];
+  let i = 0;
+  const overlay = document.createElement("div");
+  overlay.className = "phase-overlay";
+  const card = document.createElement("div");
+  card.className = "phase-card onboard-card";
+  overlay.append(card);
+  const paint = () => {
+    const c = cards[i];
+    card.innerHTML =
+      '<p class="phase-kicker" style="color:var(--accent-strong)">Getting started \u00b7 ' + (i + 1) + "/" + cards.length + "</p>" +
+      "<h3>" + c.title + "</h3>" +
+      '<div class="onboard-body">' + c.body + "</div>";
+    const row = document.createElement("div");
+    row.style.cssText = "display:flex;gap:8px;margin-top:16px;width:100%";
+    if (i < cards.length - 1) {
+      const skip = document.createElement("button");
+      skip.className = "btn"; skip.style.flex = "1";
+      skip.textContent = "Skip tour";
+      skip.addEventListener("click", finish);
+      const next = document.createElement("button");
+      next.className = "btn btn-primary"; next.style.flex = "1";
+      next.textContent = "Next";
+      next.addEventListener("click", () => { i++; paint(); });
+      row.append(skip, next);
+    } else {
+      const go = document.createElement("button");
+      go.className = "btn btn-primary"; go.style.flex = "1";
+      go.textContent = "Start studying";
+      go.addEventListener("click", finish);
+      row.append(go);
+    }
+    card.append(row);
+  };
+  async function finish() {
+    overlay.remove();
+    try { STATE = await apiSaveSettings({ onboarded: "1" }); } catch (e) {}
+  }
+  paint();
+  document.body.append(overlay);
+}
+
 /* ================= tabs & toast ================= */
 
-document.querySelectorAll(".tab").forEach(tab => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(t => {
-      const on = t === tab;
-      t.classList.toggle("is-active", on);
-      t.setAttribute("aria-selected", on ? "true" : "false");
-    });
-    ["now", "plan", "board", "settings"].forEach(name => {
-      $("#view-" + name).hidden = name !== tab.dataset.tab;
-    });
-    window.scrollTo(0, 0);
-    if (tab.dataset.tab === "board") renderBoard();
+const VIEWS = ["now", "plan", "board", "badges", "settings", "admin"];
+const MORE_VIEWS = ["badges", "settings", "admin"];
+
+function switchTab(name) {
+  VIEWS.forEach(n => { const v = $("#view-" + n); if (v) v.hidden = n !== name; });
+  document.querySelectorAll(".tabs .tab").forEach(t => {
+    const on = t.dataset.tab === name || (t.id === "tab-more" && MORE_VIEWS.includes(name));
+    t.classList.toggle("is-active", on);
+    if (t.dataset.tab) t.setAttribute("aria-selected", on ? "true" : "false");
   });
+  $("#tab-more").textContent = MORE_VIEWS.includes(name)
+    ? name.charAt(0).toUpperCase() + name.slice(1) : "More";
+  hideMoreMenu();
+  if (name === "board") renderBoard();
+  if (name === "admin") renderAdmin();
+  if (name === "badges") renderBadges();
+  window.scrollTo(0, 0);
+}
+
+function hideMoreMenu() {
+  $("#more-menu").hidden = true;
+  $("#tab-more").setAttribute("aria-expanded", "false");
+}
+
+document.querySelectorAll('.tabs .tab[data-tab]').forEach(tab => {
+  tab.addEventListener("click", () => switchTab(tab.dataset.tab));
+});
+$("#tab-more").addEventListener("click", (e) => {
+  e.stopPropagation();
+  const m = $("#more-menu");
+  m.hidden = !m.hidden;
+  $("#tab-more").setAttribute("aria-expanded", m.hidden ? "false" : "true");
+});
+document.querySelectorAll("#more-menu [data-tab]").forEach(item => {
+  item.addEventListener("click", () => switchTab(item.dataset.tab));
+});
+document.addEventListener("click", (e) => {
+  if (!$("#more-menu").hidden && !e.target.closest("#more-menu") && e.target.id !== "tab-more") hideMoreMenu();
 });
 
 let toastTimer = null;
@@ -1708,5 +1828,7 @@ function mockToggle(id, done) {
 
 (async function init() {
   STATE = await apiGetState();
+  applyRoleUi();
   render();
+  maybeOnboard();
 })();
