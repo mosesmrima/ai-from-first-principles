@@ -127,7 +127,7 @@ svg { display: block; }
 /* ---------- tabs ---------- */
 .tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 4px;
   padding: 3px;
   background: var(--surface-2);
@@ -1114,3 +1114,95 @@ svg { display: block; }
     animation-duration: 0.01ms !important;
   }
 }
+
+
+/* ---------- guidance card ---------- */
+.guide-card {
+  margin: -4px 0 18px;
+  padding: 13px 14px;
+  border-radius: 12px;
+  background: color-mix(in oklab, var(--accent) 5%, var(--surface));
+  border: 1px solid color-mix(in oklab, var(--accent) 25%, var(--border));
+}
+.guide-why { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--text); }
+.guide-sub {
+  margin: 11px 0 5px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.guide-list { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.guide-list li { font-size: 13px; color: var(--text-muted); }
+.guide-list li::marker { color: var(--accent); }
+
+/* ---------- leaderboard ---------- */
+.board-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.board-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.board-row.is-me { border-color: color-mix(in oklab, var(--accent) 45%, var(--border)); }
+.board-rank { flex: none; width: 22px; text-align: center; font-size: 14px; font-weight: 700; color: var(--text-faint); }
+.board-row:first-child .board-rank { color: var(--streak); }
+.board-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.board-name { font-size: 14px; font-weight: 600; }
+.board-you {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--accent-strong); border: 1px solid color-mix(in oklab, var(--accent) 40%, transparent);
+  border-radius: 999px; padding: 1px 6px; margin-left: 4px; vertical-align: 2px;
+}
+.board-week { font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.board-track { display: block; height: 4px; border-radius: 2px; background: var(--surface-2); overflow: hidden; margin-top: 3px; }
+.board-fill { display: block; height: 100%; border-radius: 2px; background: var(--accent); }
+.board-stats { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.board-pct { font-size: 15px; font-weight: 700; }
+.board-meta { display: inline-flex; align-items: center; gap: 3px; font-size: 11.5px; color: var(--text-muted); }
+.board-meta svg { color: var(--streak); }
+
+/* ---------- onboarding & howto ---------- */
+.howto summary { cursor: pointer; font-size: 12.5px; color: var(--accent); font-weight: 550; }
+.howto[open] summary { margin-bottom: 6px; }
+.howto ol { margin: 0 0 6px; padding-left: 20px; display: flex; flex-direction: column; gap: 5px; font-size: 12.5px; color: var(--text-muted); }
+.howto p { font-size: 12px; color: var(--text-faint); margin: 4px 0 0; }
+.howto code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: 11.5px; }
+.clone-box {
+  margin: 4px 0;
+  padding: 9px 11px;
+  border-radius: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--text-muted);
+}
+.guide-card code { background: var(--surface-2); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+
+/* ---------- admin panel ---------- */
+.admin-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+.admin-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.admin-name { font-size: 13.5px; font-weight: 600; }
+.admin-meta { font-size: 12px; color: var(--text-faint); }
+.admin-actions { display: flex; gap: 6px; flex: none; }
+.admin-status {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  border-radius: 999px; padding: 1px 7px; margin-left: 4px; vertical-align: 1px;
+  border: 1px solid var(--border-strong); color: var(--text-muted);
+}
+.admin-status.st-active { color: var(--good); border-color: color-mix(in oklab, var(--good) 40%, transparent); }
+.admin-status.st-pending { color: var(--streak); border-color: color-mix(in oklab, var(--streak) 40%, transparent); }
+.admin-status.st-revoked { color: var(--bad); border-color: color-mix(in oklab, var(--bad) 40%, transparent); }

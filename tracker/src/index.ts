@@ -1,171 +1,50 @@
-// AI Curriculum Tracker — Worker. Single-model: ordered STEPS → sessions → "next".
+// AI Curriculum Tracker — multi-user Worker.
+// Users register with an invite code (capped at MAX_USERS), get an HMAC-signed
+// session cookie, and all progress/notes/settings/GitHub config is per-user.
+// A leaderboard ranks users by server-computed progress and streak.
 import { computePlan, type Settings } from "./plan";
 import { sendSessionPush } from "./ntfy";
 import { WEEKS } from "./curriculum";
-import { commitFile, githubConfigured } from "./github";
+import { commitFile, githubConfigured, type GhEnv } from "./github";
+import { hashPassword, verifyPassword, makeSession, readSession, encryptToken, decryptToken } from "./auth";
+import { GUIDES } from "./guides";
 
 export interface Env {
   DB: D1Database;
   ASSETS: Fetcher;
   APP_URL: string;
-  ACCESS_PASSWORD?: string;
+  ACCESS_PASSWORD?: string; // root secret: signs sessions, encrypts tokens
+  INVITE_CODE?: string;
   NTFY_TOPIC?: string;
+  // legacy single-user GitHub config — used as fallback for user 1 (owner)
   GITHUB_TOKEN?: string;
   GITHUB_OWNER?: string;
   GITHUB_REPO?: string;
   GITHUB_BRANCH?: string;
 }
 
-/** The step id of a week's "note" step, e.g. week01.9 — used to auto-tick on push. */
-function noteStepId(weekId: string): string | null {
-  const w = WEEKS.find((x) => x.id === weekId);
-  if (!w) return null;
-  const i = w.steps.findIndex((s) => s.kind === "note");
-  return i >= 0 ? `${weekId}.${i}` : null;
+const MAX_USERS = 5;
+const COOKIE = "ai_tracker_session";
+
+interface User {
+  id: number;
+  name: string;
+  email: string | null;
+  status: string; // 'pending' | 'active' | 'revoked'
+  pass_salt: string;
+  pass_hash: string;
+  gh_token_enc: string | null;
+  gh_owner: string | null;
+  gh_repo: string | null;
+  gh_branch: string | null;
 }
 
-function noteTemplate(weekId: string): string {
-  const w = WEEKS.find((x) => x.id === weekId);
-  const title = w ? w.title : weekId;
-  return `# ${weekId} — ${title}\n\n- **Learned:**\n\n- **Confused by:**\n\n- **Built:**\n\n- **Next:**\n`;
-}
-
-const json = (data: unknown, status = 200) =>
+const json = (data: unknown, status = 200, extra: Record<string, string> = {}) =>
   new Response(JSON.stringify(data), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...extra },
   });
 
-async function loadSettings(env: Env): Promise<Settings> {
-  const rows = await env.DB.prepare("SELECT key, value FROM settings").all<{ key: string; value: string }>();
-  const s: Record<string, string> = {};
-  for (const r of rows.results ?? []) s[r.key] = r.value;
-  return {
-    start_date: s.start_date ?? "2026-07-08",
-    session_minutes: s.session_minutes ?? "120",
-    study_days: s.study_days ?? "1,2,3,4,5,6",
-    reminder_enabled: s.reminder_enabled ?? "1",
-    ...s,
-  };
-}
-
-async function loadDone(env: Env): Promise<Set<string>> {
-  const rows = await env.DB.prepare("SELECT step_id FROM step_progress").all<{ step_id: string }>();
-  return new Set((rows.results ?? []).map((r) => r.step_id));
-}
-
-async function loadNote(env: Env, weekId: string): Promise<string> {
-  const row = await env.DB.prepare("SELECT body FROM notes WHERE week_id = ?").bind(weekId).first<{ body: string }>();
-  return row?.body ?? noteTemplate(weekId);
-}
-
-async function getState(env: Env) {
-  const [settings, done] = await Promise.all([loadSettings(env), loadDone(env)]);
-  const plan = computePlan(done, settings, Date.now());
-  const weekId = plan.currentWeekId;
-  const note = weekId ? { weekId, body: await loadNote(env, weekId) } : null;
-  return { settings, plan, note, githubReady: githubConfigured(env) };
-}
-
-async function handleApi(req: Request, env: Env, url: URL): Promise<Response> {
-  const path = url.pathname.replace(/\/+$/, "");
-  const method = req.method.toUpperCase();
-
-  if (path === "/api/state" && method === "GET") {
-    return json(await getState(env));
-  }
-
-  // POST /api/steps/:id/toggle  body: { done }
-  const toggle = path.match(/^\/api\/steps\/([\w.-]+)\/toggle$/);
-  if (toggle && method === "POST") {
-    const id = decodeURIComponent(toggle[1]);
-    const body = (await req.json().catch(() => ({}))) as { done?: boolean };
-    if (body.done) {
-      await env.DB.prepare("INSERT OR REPLACE INTO step_progress (step_id, done_at) VALUES (?, ?)")
-        .bind(id, new Date().toISOString())
-        .run();
-    } else {
-      await env.DB.prepare("DELETE FROM step_progress WHERE step_id = ?").bind(id).run();
-    }
-    return json(await getState(env));
-  }
-
-  // PUT /api/settings
-  if (path === "/api/settings" && method === "PUT") {
-    const body = (await req.json().catch(() => ({}))) as Record<string, string>;
-    const allowed = ["start_date", "session_minutes", "study_days", "reminder_enabled", "timezone"];
-    const stmts = [];
-    for (const k of allowed) {
-      if (body[k] !== undefined) {
-        stmts.push(
-          env.DB.prepare(
-            "INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value"
-          ).bind(k, String(body[k]))
-        );
-      }
-    }
-    if (stmts.length) await env.DB.batch(stmts);
-    return json(await getState(env));
-  }
-
-  // PUT /api/notes/:weekId  body: { body, push?: boolean }
-  // Saves the note to D1 and (optionally) commits it to GitHub as notes/<weekId>.md
-  const note = path.match(/^\/api\/notes\/([\w-]+)$/);
-  if (note && method === "PUT") {
-    const weekId = note[1];
-    const b = (await req.json().catch(() => ({}))) as { body?: string; push?: boolean };
-    const text = (b.body ?? "").trim();
-    if (!text) return json({ error: "note is empty" }, 400);
-
-    await env.DB.prepare(
-      "INSERT INTO notes (week_id, body, updated_at) VALUES (?, ?, ?) " +
-        "ON CONFLICT(week_id) DO UPDATE SET body = excluded.body, updated_at = excluded.updated_at"
-    )
-      .bind(weekId, text, new Date().toISOString())
-      .run();
-
-    let pushed = false;
-    let commitUrl = "";
-    let error = "";
-    if (b.push) {
-      if (!githubConfigured(env)) {
-        error = "GITHUB_TOKEN not set — saved locally only.";
-      } else {
-        try {
-          const res = await commitFile(env, `notes/${weekId}.md`, text + "\n", `notes(${weekId}): update learning note`);
-          pushed = true;
-          commitUrl = res.commitUrl;
-          // Reward: tick the week's note step automatically.
-          const sid = noteStepId(weekId);
-          if (sid) {
-            await env.DB.prepare("INSERT OR REPLACE INTO step_progress (step_id, done_at) VALUES (?, ?)")
-              .bind(sid, new Date().toISOString())
-              .run();
-          }
-        } catch (err) {
-          error = (err as Error)?.message ?? "push failed";
-        }
-      }
-    }
-    return json({ saved: true, pushed, commitUrl, error, ...(await getState(env)) });
-  }
-
-  // POST /api/test-reminder — push the current session to your phone now
-  if (path === "/api/test-reminder" && method === "POST") {
-    const { plan } = await getState(env);
-    const ok = await sendSessionPush(env, plan);
-    return json({ sent: ok, session: plan.currentSessionIndex + 1 });
-  }
-
-  return json({ error: "not found" }, 404);
-}
-
-// --- password gate ----------------------------------------------------------
-const AUTH_COOKIE = "ai_tracker_auth";
-async function sha256Hex(s: string): Promise<string> {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
-  return [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, "0")).join("");
-}
 function getCookie(req: Request, name: string): string | null {
   const h = req.headers.get("cookie");
   if (!h) return null;
@@ -175,71 +54,377 @@ function getCookie(req: Request, name: string): string | null {
   }
   return null;
 }
-async function expectedToken(env: Env): Promise<string> {
-  return sha256Hex("v1:" + env.ACCESS_PASSWORD);
+const setCookie = (v: string) =>
+  `${COOKIE}=${v}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=34560000`;
+
+/* ---------------- per-user data access ---------------- */
+
+async function loadSettings(env: Env, userId: number): Promise<Settings> {
+  const rows = await env.DB.prepare("SELECT key, value FROM user_settings WHERE user_id = ?")
+    .bind(userId)
+    .all<{ key: string; value: string }>();
+  const s: Record<string, string> = {};
+  for (const r of rows.results ?? []) s[r.key] = r.value;
+  return {
+    start_date: s.start_date ?? new Date().toISOString().slice(0, 10),
+    session_minutes: s.session_minutes ?? "120",
+    study_days: s.study_days ?? "1,2,3,4,5,6",
+    reminder_enabled: s.reminder_enabled ?? "1",
+    ...s,
+  };
 }
-async function isAuthed(req: Request, env: Env): Promise<boolean> {
-  if (!env.ACCESS_PASSWORD) return true;
-  return getCookie(req, AUTH_COOKIE) === (await expectedToken(env));
+
+async function loadDone(env: Env, userId: number): Promise<Set<string>> {
+  const rows = await env.DB.prepare("SELECT step_id FROM user_steps WHERE user_id = ?")
+    .bind(userId)
+    .all<{ step_id: string }>();
+  return new Set((rows.results ?? []).map((r) => r.step_id));
 }
+
+async function loadNote(env: Env, userId: number, weekId: string): Promise<string> {
+  const row = await env.DB.prepare("SELECT body FROM user_notes WHERE user_id = ? AND week_id = ?")
+    .bind(userId, weekId)
+    .first<{ body: string }>();
+  return row?.body ?? noteTemplate(weekId);
+}
+
+function noteStepId(weekId: string): string | null {
+  const w = WEEKS.find((x) => x.id === weekId);
+  if (!w) return null;
+  const i = w.steps.findIndex((s) => s.kind === "note");
+  return i >= 0 ? `${weekId}.${i}` : null;
+}
+
+function noteTemplate(weekId: string): string {
+  const w = WEEKS.find((x) => x.id === weekId);
+  return `# ${weekId} — ${w ? w.title : weekId}\n\n- **Learned:**\n\n- **Confused by:**\n\n- **Built:**\n\n- **Next:**\n`;
+}
+
+async function getUser(env: Env, userId: number): Promise<User | null> {
+  return env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(userId).first<User>();
+}
+
+/** Per-user GitHub config; user 1 falls back to the env-level config. */
+async function ghEnvFor(env: Env, user: User): Promise<GhEnv> {
+  if (user.gh_token_enc && user.gh_owner && user.gh_repo) {
+    return {
+      GITHUB_TOKEN: await decryptToken(env.ACCESS_PASSWORD!, user.gh_token_enc),
+      GITHUB_OWNER: user.gh_owner,
+      GITHUB_REPO: user.gh_repo,
+      GITHUB_BRANCH: user.gh_branch || "master",
+    };
+  }
+  if (user.id === 1 && env.GITHUB_TOKEN) {
+    return { GITHUB_TOKEN: env.GITHUB_TOKEN, GITHUB_OWNER: env.GITHUB_OWNER, GITHUB_REPO: env.GITHUB_REPO, GITHUB_BRANCH: env.GITHUB_BRANCH };
+  }
+  return {};
+}
+
+async function getState(env: Env, user: User) {
+  const [settings, done] = await Promise.all([loadSettings(env, user.id), loadDone(env, user.id)]);
+  const plan = computePlan(done, settings, Date.now());
+  const weekId = plan.currentWeekId;
+  const note = weekId ? { weekId, body: await loadNote(env, user.id, weekId) } : null;
+  const gh = await ghEnvFor(env, user);
+  return {
+    settings,
+    plan,
+    note,
+    guide: (weekId && GUIDES[weekId]) || null,
+    curriculumRepo: "https://github.com/mosesmrima/ai-from-first-principles",
+    githubReady: githubConfigured(gh),
+    user: { name: user.name, isAdmin: user.id === 1, githubRepo: gh.GITHUB_OWNER ? `${gh.GITHUB_OWNER}/${gh.GITHUB_REPO}` : null },
+  };
+}
+
+/* ---------------- leaderboard (server-computed) ---------------- */
+
+function computeStreak(doneDates: Set<string>, studyDays: number[], now: number): number {
+  const DAY = 86_400_000;
+  let streak = 0;
+  let t = now;
+  const key = (ts: number) => new Date(ts).toISOString().slice(0, 10);
+  const dow = (ts: number) => new Date(ts).getUTCDay();
+  // today doesn't break the streak if it hasn't started yet
+  if (!doneDates.has(key(t))) t -= DAY;
+  for (let i = 0; i < 3650; i++, t -= DAY) {
+    if (!studyDays.includes(dow(t))) continue; // rest days neither count nor break
+    if (doneDates.has(key(t))) streak++;
+    else break;
+  }
+  return streak;
+}
+
+async function leaderboard(env: Env) {
+  const users = (await env.DB.prepare("SELECT id, name FROM users WHERE status = 'active' ORDER BY id").all<{ id: number; name: string }>())
+    .results ?? [];
+  const now = Date.now();
+  const weekAgo = new Date(now - 7 * 86_400_000).toISOString();
+  const out = [];
+  for (const u of users) {
+    const rows = (await env.DB.prepare("SELECT step_id, done_at FROM user_steps WHERE user_id = ?")
+      .bind(u.id)
+      .all<{ step_id: string; done_at: string }>()).results ?? [];
+    const settings = await loadSettings(env, u.id);
+    const plan = computePlan(new Set(rows.map((r) => r.step_id)), settings, now);
+    const doneDates = new Set(rows.filter((r) => r.done_at).map((r) => r.done_at.slice(0, 10)));
+    const studyDays = settings.study_days.split(",").map((x) => parseInt(x, 10));
+    out.push({
+      name: u.name,
+      percent: plan.percent,
+      doneSteps: plan.doneSteps,
+      totalSteps: plan.totalSteps,
+      weekSteps: rows.filter((r) => r.done_at && r.done_at >= weekAgo).length,
+      streak: computeStreak(doneDates, studyDays, now),
+      currentWeek: plan.currentWeekTitle,
+    });
+  }
+  out.sort((a, b) => b.percent - a.percent || b.weekSteps - a.weekSteps || b.streak - a.streak);
+  return out;
+}
+
+/* ---------------- API ---------------- */
+
+async function handleApi(req: Request, env: Env, url: URL, userId: number | null): Promise<Response> {
+  const path = url.pathname.replace(/\/+$/, "");
+  const method = req.method.toUpperCase();
+  const secret = env.ACCESS_PASSWORD!;
+
+  // ---- public: register / login ----
+  if (path === "/api/register" && method === "POST") {
+    const b = (await req.json().catch(() => ({}))) as { invite?: string; name?: string; email?: string; password?: string };
+    if (!env.INVITE_CODE || b.invite !== env.INVITE_CODE) return json({ error: "bad invite code" }, 403);
+    const name = (b.name ?? "").trim();
+    const email = (b.email ?? "").trim();
+    if (!/^[\w .-]{2,24}$/.test(name)) return json({ error: "name must be 2–24 letters/numbers" }, 400);
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return json({ error: "a valid email is required" }, 400);
+    if (!b.password || b.password.length < 6) return json({ error: "password must be 6+ chars" }, 400);
+    const count = await env.DB.prepare("SELECT COUNT(*) AS n FROM users WHERE status != 'revoked'").first<{ n: number }>();
+    if ((count?.n ?? 0) >= MAX_USERS) return json({ error: `signups are capped at ${MAX_USERS} users` }, 403);
+    const dupe = await env.DB.prepare("SELECT id FROM users WHERE lower(name) = lower(?)").bind(name).first();
+    if (dupe) return json({ error: "name already taken" }, 409);
+    const { salt, hash } = await hashPassword(b.password);
+    await env.DB.prepare(
+      "INSERT INTO users (name, email, status, pass_salt, pass_hash, created_at) VALUES (?, ?, 'pending', ?, ?, ?)"
+    ).bind(name, email, salt, hash, new Date().toISOString()).run();
+    // No session yet — the account must be approved by the admin first.
+    return json({ ok: true, pending: true, message: "Account created — waiting for approval from the group admin." });
+  }
+
+  if (path === "/api/login" && method === "POST") {
+    const b = (await req.json().catch(() => ({}))) as { name?: string; password?: string };
+    const user = await env.DB.prepare("SELECT * FROM users WHERE lower(name) = lower(?)")
+      .bind((b.name ?? "").trim())
+      .first<User>();
+    if (!user || !(await verifyPassword(b.password ?? "", user.pass_salt, user.pass_hash))) {
+      return json({ error: "wrong name or password" }, 401);
+    }
+    if (user.status === "pending") return json({ error: "account not approved yet — ask the admin" }, 403);
+    if (user.status === "revoked") return json({ error: "access has been revoked" }, 403);
+    const sid = await makeSession(secret, user.id);
+    return json({ ok: true }, 200, { "set-cookie": setCookie(sid) });
+  }
+
+  if (path === "/api/logout" && method === "POST") {
+    return json({ ok: true }, 200, { "set-cookie": `${COOKIE}=; Path=/; Max-Age=0` });
+  }
+
+  // ---- everything below requires a session ----
+  if (!userId) return json({ error: "unauthorized" }, 401);
+  const user = await getUser(env, userId);
+  if (!user || user.status !== "active") return json({ error: "unauthorized" }, 401);
+
+  // ---- admin (user 1 only) ----
+  if (path.startsWith("/api/admin/")) {
+    if (user.id !== 1) return json({ error: "forbidden" }, 403);
+    if (path === "/api/admin/users" && method === "GET") {
+      const rows = (await env.DB.prepare(
+        "SELECT u.id, u.name, u.email, u.status, u.created_at, " +
+        "(SELECT COUNT(*) FROM user_steps s WHERE s.user_id = u.id) AS done_steps, " +
+        "(SELECT MAX(done_at) FROM user_steps s WHERE s.user_id = u.id) AS last_active " +
+        "FROM users u ORDER BY u.id"
+      ).all()).results ?? [];
+      return json({ users: rows, maxUsers: MAX_USERS, invite: env.INVITE_CODE ?? null });
+    }
+    const st = path.match(/^\/api\/admin\/users\/(\d+)\/status$/);
+    if (st && method === "POST") {
+      const target = Number(st[1]);
+      if (target === 1) return json({ error: "cannot change the admin account" }, 400);
+      const b = (await req.json().catch(() => ({}))) as { status?: string };
+      if (!["active", "revoked", "pending"].includes(b.status ?? "")) return json({ error: "bad status" }, 400);
+      await env.DB.prepare("UPDATE users SET status = ? WHERE id = ?").bind(b.status, target).run();
+      return json({ ok: true });
+    }
+    return json({ error: "not found" }, 404);
+  }
+
+  if (path === "/api/state" && method === "GET") return json(await getState(env, user));
+
+  if (path === "/api/leaderboard" && method === "GET") return json({ board: await leaderboard(env) });
+
+  const toggle = path.match(/^\/api\/steps\/([\w.-]+)\/toggle$/);
+  if (toggle && method === "POST") {
+    const id = decodeURIComponent(toggle[1]);
+    const b = (await req.json().catch(() => ({}))) as { done?: boolean };
+    if (b.done) {
+      await env.DB.prepare("INSERT OR REPLACE INTO user_steps (user_id, step_id, done_at) VALUES (?, ?, ?)")
+        .bind(userId, id, new Date().toISOString())
+        .run();
+    } else {
+      await env.DB.prepare("DELETE FROM user_steps WHERE user_id = ? AND step_id = ?").bind(userId, id).run();
+    }
+    return json(await getState(env, user));
+  }
+
+  if (path === "/api/settings" && method === "PUT") {
+    const b = (await req.json().catch(() => ({}))) as Record<string, string>;
+    const allowed = ["start_date", "session_minutes", "study_days", "reminder_enabled", "timezone"];
+    const stmts = [];
+    for (const k of allowed) {
+      if (b[k] !== undefined) {
+        stmts.push(
+          env.DB.prepare(
+            "INSERT INTO user_settings (user_id, key, value) VALUES (?, ?, ?) " +
+              "ON CONFLICT(user_id, key) DO UPDATE SET value = excluded.value"
+          ).bind(userId, k, String(b[k]))
+        );
+      }
+    }
+    if (stmts.length) await env.DB.batch(stmts);
+    return json(await getState(env, user));
+  }
+
+  // PUT /api/github {token?, owner, repo, branch?} — token stored encrypted, never returned
+  if (path === "/api/github" && method === "PUT") {
+    const b = (await req.json().catch(() => ({}))) as { token?: string; owner?: string; repo?: string; branch?: string };
+    if (!b.owner || !b.repo) return json({ error: "owner and repo required" }, 400);
+    const enc = b.token ? await encryptToken(secret, b.token.trim()) : user.gh_token_enc;
+    if (!enc) return json({ error: "a GitHub token is required the first time" }, 400);
+    await env.DB.prepare("UPDATE users SET gh_token_enc = ?, gh_owner = ?, gh_repo = ?, gh_branch = ? WHERE id = ?")
+      .bind(enc, b.owner.trim(), b.repo.trim(), (b.branch ?? "master").trim(), userId)
+      .run();
+    const fresh = await getUser(env, userId);
+    return json(await getState(env, fresh!));
+  }
+
+  const note = path.match(/^\/api\/notes\/([\w-]+)$/);
+  if (note && method === "PUT") {
+    const weekId = note[1];
+    const b = (await req.json().catch(() => ({}))) as { body?: string; push?: boolean };
+    const text = (b.body ?? "").trim();
+    if (!text) return json({ error: "note is empty" }, 400);
+    await env.DB.prepare(
+      "INSERT INTO user_notes (user_id, week_id, body, updated_at) VALUES (?, ?, ?, ?) " +
+        "ON CONFLICT(user_id, week_id) DO UPDATE SET body = excluded.body, updated_at = excluded.updated_at"
+    ).bind(userId, weekId, text, new Date().toISOString()).run();
+
+    let pushed = false, commitUrl = "", error = "";
+    if (b.push) {
+      const gh = await ghEnvFor(env, user);
+      if (!githubConfigured(gh)) error = "GitHub not configured — add your token in Settings. Saved locally.";
+      else {
+        try {
+          const res = await commitFile(gh, `notes/${weekId}.md`, text + "\n", `notes(${weekId}): update learning note`);
+          pushed = true;
+          commitUrl = res.commitUrl;
+          const sid = noteStepId(weekId);
+          if (sid) {
+            await env.DB.prepare("INSERT OR REPLACE INTO user_steps (user_id, step_id, done_at) VALUES (?, ?, ?)")
+              .bind(userId, sid, new Date().toISOString())
+              .run();
+          }
+        } catch (err) {
+          error = (err as Error)?.message ?? "push failed";
+        }
+      }
+    }
+    return json({ saved: true, pushed, commitUrl, error, ...(await getState(env, user)) });
+  }
+
+  if (path === "/api/test-reminder" && method === "POST") {
+    const { plan } = await getState(env, user);
+    const ok = await sendSessionPush(env, plan);
+    return json({ sent: ok });
+  }
+
+  return json({ error: "not found" }, 404);
+}
+
+/* ---------------- login page ---------------- */
+
 const LOGIN_HTML = `<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in</title>
-<style>body{font-family:system-ui,Segoe UI,Roboto,sans-serif;background:#0f0f14;color:#ececf2;display:grid;place-items:center;min-height:100vh;margin:0}
-form{background:#1a1a22;padding:28px;border-radius:14px;border:1px solid #2a2a35;width:min(90vw,340px)}
-h1{font-size:18px;margin:0 0 16px}input{width:100%;padding:11px;border-radius:8px;border:1px solid #2a2a35;background:#0f0f14;color:#ececf2;box-sizing:border-box}
-button{width:100%;margin-top:10px;padding:11px;border:0;border-radius:8px;background:#8b83ff;color:#111;font-weight:700;cursor:pointer}
-.err{color:#f87171;font-size:13px;min-height:18px;margin-top:8px}</style></head>
-<body><form onsubmit="return login(event)"><h1>🧠 AI Tracker — sign in</h1>
-<input id="p" type="password" placeholder="Password" autofocus autocomplete="current-password">
-<div class="err" id="e"></div><button>Enter</button></form>
-<script>async function login(ev){ev.preventDefault();const p=document.getElementById('p').value;
-const r=await fetch('/api/login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({password:p})});
-if(r.ok){location.reload()}else{document.getElementById('e').textContent='Wrong password'}return false}</script>
-</body></html>`;
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in — AI Curriculum</title>
+<style>:root{color-scheme:dark}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;background:#0e0f12;color:#e7e9ec;display:grid;place-items:center;min-height:100vh;margin:0;padding:16px;box-sizing:border-box}
+.card{background:#16181d;padding:26px;border-radius:14px;border:1px solid #262a31;width:min(92vw,360px)}
+h1{font-size:16px;margin:0 0 18px;letter-spacing:-0.01em}
+input{width:100%;padding:11px 12px;border-radius:8px;border:1px solid #333842;background:#0e0f12;color:#e7e9ec;box-sizing:border-box;font:inherit;margin-bottom:9px}
+input:focus{outline:2px solid rgba(123,135,232,.45);outline-offset:-1px}
+button{width:100%;padding:11px;border:0;border-radius:8px;background:#7b87e8;color:#fff;font-weight:600;cursor:pointer;font:inherit}
+button:hover{background:#8b96f0}.err{color:#d98a7a;font-size:13px;min-height:18px;margin:6px 0 0}
+.alt{margin-top:16px;padding-top:14px;border-top:1px solid #262a31;font-size:13px;color:#9aa1ab;text-align:center}
+.alt a{color:#7b87e8;cursor:pointer;text-decoration:none}.alt a:hover{text-decoration:underline}.hide{display:none}</style></head>
+<body><div class="card">
+<form id="f-login" onsubmit="return go(event,'login')"><h1>AI Curriculum — sign in</h1>
+<input id="li-name" placeholder="Name" autocomplete="username" autofocus>
+<input id="li-pass" type="password" placeholder="Password" autocomplete="current-password">
+<button>Sign in</button><div class="err" id="e1"></div>
+<p class="alt">New here? <a onclick="flip(true)">Join with an invite code</a></p></form>
+<form id="f-reg" class="hide" onsubmit="return go(event,'register')"><h1>Join the study group</h1>
+<input id="r-invite" placeholder="Invite code">
+<input id="r-name" placeholder="Display name (shown on the leaderboard)" autocomplete="username">
+<input id="r-email" type="email" placeholder="Email (so the admin knows who you are)" autocomplete="email">
+<input id="r-pass" type="password" placeholder="Choose a password (6+ chars)" autocomplete="new-password">
+<button>Create account</button><div class="err" id="e2"></div>
+<p class="alt">Already joined? <a onclick="flip(false)">Sign in</a></p></form>
+</div><script>
+function flip(reg){document.getElementById('f-login').classList.toggle('hide',reg);document.getElementById('f-reg').classList.toggle('hide',!reg)}
+async function go(ev,mode){ev.preventDefault();
+const body=mode==='login'?{name:val('li-name'),password:val('li-pass')}:{invite:val('r-invite'),name:val('r-name'),email:val('r-email'),password:val('r-pass')};
+const r=await fetch('/api/'+mode,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+const d=await r.json().catch(()=>({}));
+if(r.ok&&d.pending){const e=document.getElementById('e2');e.style.color='#5fb98a';e.textContent=d.message||'Created — waiting for admin approval.'}
+else if(r.ok){location.reload()}
+else{document.getElementById(mode==='login'?'e1':'e2').textContent=d.error||'failed'}return false}
+function val(id){return document.getElementById(id).value}
+</script></body></html>`;
+
+/* ---------------- entry ---------------- */
 
 export default {
   async fetch(req: Request, env: Env): Promise<Response> {
     const url = new URL(req.url);
-
-    if (url.pathname === "/api/login" && req.method === "POST") {
-      const body = (await req.json().catch(() => ({}))) as { password?: string };
-      if (env.ACCESS_PASSWORD && body.password === env.ACCESS_PASSWORD) {
-        return new Response(JSON.stringify({ ok: true }), {
-          status: 200,
-          headers: {
-            "content-type": "application/json",
-            "set-cookie": `${AUTH_COOKIE}=${await expectedToken(env)}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=34560000`,
-          },
-        });
-      }
-      return json({ ok: false }, 401);
-    }
-
-    if (!(await isAuthed(req, env))) {
-      if (url.pathname.startsWith("/api/")) return json({ error: "unauthorized" }, 401);
-      return new Response(LOGIN_HTML, { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
-    }
+    const userId = await readSession(env.ACCESS_PASSWORD!, getCookie(req, COOKIE));
 
     if (url.pathname.startsWith("/api/")) {
       try {
-        return await handleApi(req, env, url);
+        return await handleApi(req, env, url, userId);
       } catch (err) {
         console.error("api error:", (err as Error)?.message ?? err);
         return json({ error: "internal error" }, 500);
       }
     }
+    if (!userId) {
+      return new Response(LOGIN_HTML, { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
+    }
+    const u = await getUser(env, userId);
+    if (!u || u.status !== "active") {
+      return new Response(LOGIN_HTML, { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
+    }
     return env.ASSETS.fetch(req);
   },
 
-  // Daily at the cron time; pushes the current session on study days only.
+  // Daily reminder — pushes user 1's (owner's) current session to the shared ntfy topic.
   async scheduled(_e: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(
       (async () => {
-        const settings = await loadSettings(env);
+        const owner = await getUser(env, 1);
+        if (!owner) return;
+        const settings = await loadSettings(env, 1);
         if ((settings.reminder_enabled ?? "1") === "0") return;
-        const studyDays = (settings.study_days ?? "1,2,3,4,5,6").split(",").map((x) => parseInt(x, 10));
+        const studyDays = settings.study_days.split(",").map((x) => parseInt(x, 10));
         if (!studyDays.includes(new Date().getUTCDay())) return;
-        const { plan } = await getState(env);
+        const done = await loadDone(env, 1);
+        const plan = computePlan(done, settings, Date.now());
         await sendSessionPush(env, plan);
       })()
     );

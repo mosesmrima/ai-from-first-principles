@@ -686,6 +686,19 @@ function renderNow() {
     '<h2 class="week-title">' + esc(p.currentWeekTitle) + "</h2>";
   view.append(wh);
 
+  if (STATE.plan.doneSteps === 0) {
+    const ob = document.createElement("div");
+    ob.className = "guide-card";
+    const repo = STATE.curriculumRepo || "#";
+    ob.innerHTML = '<h2 class="section-label">Welcome \u2014 get set up</h2>' +
+      '<p class="guide-why">The exercises live in a GitHub repo. <a href="' + repo + '/fork" target="_blank" rel="noopener">Fork it</a>, clone your fork, and run <code>bash setup.sh</code>. Then work through the steps below \u2014 full instructions are in Settings.</p>';
+    view.append(ob);
+  }
+
+  if (STATE.guide && (STATE.guide.why || (STATE.guide.remember || []).length)) {
+    view.append(guideCard(STATE.guide));
+  }
+
   // today's session meter (local, device-only)
   view.append(todayCard());
   view.append(momentumCard());
@@ -895,7 +908,105 @@ function renderSettings() {
   actions.append(saveBtn, testBtn);
   card.append(fDate, fMin, fDays, fRem, actions);
   view.append(card);
+  view.append(repoCard());
+  view.append(githubCard());
+  if (STATE.user && STATE.user.isAdmin) {
+    const admin = document.createElement("div");
+    admin.className = "settings-card";
+    admin.style.marginTop = "12px";
+    admin.innerHTML = '<div class="field"><span class="field-label">Admin — members</span><p class="field-hint">Approve pending signups, revoke inactive accounts.</p></div>';
+    const holder = document.createElement("div");
+    holder.id = "admin-users";
+    holder.innerHTML = '<p class="field-hint">Loading…</p>';
+    admin.append(holder);
+    view.append(admin);
+    loadAdminUsers(holder);
+  }
+  view.append(accountCard());
   view.append(badgesCard());
+}
+
+function githubCard() {
+  const card = document.createElement("div");
+  card.className = "settings-card";
+  card.style.marginTop = "12px";
+  const cur = STATE.user && STATE.user.githubRepo;
+  card.innerHTML = '<div class="field"><span class="field-label">GitHub note sync</span>' +
+    '<p class="field-hint">' + (STATE.githubReady
+      ? "Connected — notes commit to <strong>" + esc(cur || "") + "</strong>."
+      : "Paste a fine-grained personal access token (Contents: read &amp; write, single repo). Notes will commit to your repo.") +
+    "</p></div>";
+  const mk = (ph, type) => { const i = document.createElement("input"); i.className = "input"; i.placeholder = ph; if (type) i.type = type; i.style.maxWidth = "100%"; return i; };
+  const inOwner = mk("GitHub username (owner)");
+  const inRepo = mk("Repository name");
+  const inBranch = mk("Branch (default: master)");
+  const inToken = mk(STATE.githubReady ? "New token (leave blank to keep current)" : "github_pat_…", "password");
+  if (cur) { const p = cur.split("/"); inOwner.value = p[0] || ""; inRepo.value = p[1] || ""; }
+  const save = document.createElement("button");
+  save.className = "btn";
+  save.textContent = "Save GitHub config";
+  save.addEventListener("click", async () => {
+    save.disabled = true;
+    try {
+      const body = { owner: inOwner.value, repo: inRepo.value, branch: inBranch.value || "master" };
+      if (inToken.value.trim()) body.token = inToken.value.trim();
+      const r = await fetch("/api/github", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "failed");
+      STATE = d; inToken.value = ""; render(); toast("GitHub connected");
+    } catch (e) { toast(e.message || "Couldn't save GitHub config"); }
+    finally { save.disabled = false; }
+  });
+  const wrap = document.createElement("div");
+  wrap.className = "field";
+  wrap.append(inOwner, inRepo, inBranch, inToken, save);
+  card.append(wrap);
+
+  const how = document.createElement("details");
+  how.className = "howto";
+  how.innerHTML = "<summary>How to set this up (2 minutes)</summary>" +
+    "<ol>" +
+    "<li>Fork the curriculum repo (link in the card below) to your GitHub account \u2014 this gives you your own copy to push notes and exercise solutions to.</li>" +
+    '<li>Open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a>.</li>' +
+    "<li>Repository access \u2192 <strong>Only select repositories</strong> \u2192 pick your fork.</li>" +
+    "<li>Permissions \u2192 Repository permissions \u2192 <strong>Contents: Read and write</strong>. Nothing else.</li>" +
+    "<li>Generate, copy the <code>github_pat_\u2026</code> token, paste it above with your username and repo name, and save.</li>" +
+    "</ol>" +
+    "<p>The token is stored encrypted on the server and never shown again. If it ever leaks, the blast radius is that one repo.</p>";
+  card.append(how);
+  return card;
+}
+
+function repoCard() {
+  const card = document.createElement("div");
+  card.className = "settings-card";
+  card.style.marginTop = "12px";
+  const repo = STATE.curriculumRepo || "https://github.com/mosesmrima/ai-from-first-principles";
+  card.innerHTML = '<div class="field"><span class="field-label">Curriculum repo (exercises &amp; assignments)</span>' +
+    '<p class="field-hint">All build steps reference files in this repo \u2014 fork it, then clone your fork to work locally:</p>' +
+    '<pre class="clone-box">git clone git@github.com:&lt;your-username&gt;/ai-from-first-principles.git</pre>' +
+    '<p class="field-hint"><a href="' + repo + '" target="_blank" rel="noopener">Open the repo \u2197</a> \u00b7 ' +
+    '<a href="' + repo + '/fork" target="_blank" rel="noopener">Fork it \u2197</a> \u00b7 then run <code>bash setup.sh</code> inside it.</p></div>';
+  return card;
+}
+
+function accountCard() {
+  const card = document.createElement("div");
+  card.className = "settings-card";
+  card.style.marginTop = "12px";
+  const row = document.createElement("div");
+  row.className = "switch-row";
+  row.innerHTML = '<span class="field-label">Signed in as <strong>' + esc(STATE.user ? STATE.user.name : "") + "</strong></span>";
+  const out = document.createElement("button");
+  out.className = "btn";
+  out.textContent = "Sign out";
+  out.addEventListener("click", async () => {
+    await fetch("/api/logout", { method: "POST" });
+    location.reload();
+  });
+  row.append(out);
+  card.append(row);
+  return card;
 }
 
 /* ================= actions ================= */
@@ -1160,6 +1271,120 @@ function badgesCard() {
   return card;
 }
 
+/* ================= guidance ================= */
+
+function guideCard(g) {
+  const card = document.createElement("div");
+  card.className = "guide-card";
+  let html = '<h2 class="section-label">Why this week matters</h2>';
+  if (g.why) html += '<p class="guide-why">' + esc(g.why) + "</p>";
+  if (g.remember && g.remember.length) {
+    html += '<p class="guide-sub">Worth remembering</p><ul class="guide-list">' +
+      g.remember.map(r => "<li>" + esc(r) + "</li>").join("") + "</ul>";
+  }
+  card.innerHTML = html;
+  return card;
+}
+
+/* ================= leaderboard ================= */
+
+async function renderBoard() {
+  const view = $("#view-board");
+  view.innerHTML = '<p class="offline-note">Loading leaderboard…</p>';
+  let board = [];
+  try {
+    const r = await fetch("/api/leaderboard");
+    if (!r.ok) throw new Error(r.status);
+    board = (await r.json()).board || [];
+  } catch (e) {
+    view.innerHTML = '<div class="empty">Leaderboard unavailable.</div>';
+    return;
+  }
+  view.textContent = "";
+  const label = document.createElement("h2");
+  label.className = "section-label";
+  label.textContent = "Leaderboard";
+  view.append(label);
+  if (!board.length) {
+    view.innerHTML += '<div class="empty">Nobody here yet.</div>';
+    return;
+  }
+  const me = STATE && STATE.user ? STATE.user.name : null;
+  const ul = document.createElement("ul");
+  ul.className = "board-list";
+  board.forEach((u, i) => {
+    const li = document.createElement("li");
+    li.className = "board-row" + (u.name === me ? " is-me" : "");
+    li.innerHTML =
+      '<span class="board-rank num">' + (i + 1) + "</span>" +
+      '<span class="board-body"><span class="board-name">' + esc(u.name) + (u.name === me ? ' <span class="board-you">you</span>' : "") + "</span>" +
+      '<span class="board-week">' + esc(u.currentWeek || "") + "</span>" +
+      '<span class="board-track"><span class="board-fill" style="width:' + (u.percent || 0) + '%"></span></span></span>' +
+      '<span class="board-stats"><span class="board-pct num">' + u.percent + "%</span>" +
+      '<span class="board-meta num">' + u.weekSteps + " this wk" + (u.streak > 0 ? " · " + ICONS.flame + u.streak : "") + "</span></span>";
+    ul.append(li);
+  });
+  view.append(ul);
+}
+
+/* ================= admin ================= */
+
+async function loadAdminUsers(holder) {
+  let data;
+  try {
+    const r = await fetch("/api/admin/users");
+    if (!r.ok) throw new Error(r.status);
+    data = await r.json();
+  } catch (e) {
+    holder.innerHTML = '<p class="field-hint">Couldn\u2019t load users.</p>';
+    return;
+  }
+  holder.textContent = "";
+  const meta = document.createElement("p");
+  meta.className = "field-hint";
+  meta.innerHTML = data.users.filter(u => u.status !== "revoked").length + "/" + data.maxUsers +
+    " seats used" + (data.invite ? ' \u00b7 invite code: <code>' + esc(data.invite) + "</code>" : "");
+  holder.append(meta);
+  data.users.forEach(u => {
+    const row = document.createElement("div");
+    row.className = "admin-row";
+    const last = u.last_active ? u.last_active.slice(0, 10) : "never";
+    row.innerHTML =
+      '<span class="admin-body"><span class="admin-name">' + esc(u.name) +
+      ' <span class="admin-status st-' + u.status + '">' + u.status + "</span></span>" +
+      '<span class="admin-meta">' + esc(u.email || "no email") + " \u00b7 " + u.done_steps + " steps \u00b7 last active " + last + "</span></span>";
+    const actions = document.createElement("span");
+    actions.className = "admin-actions";
+    if (u.id !== 1) {
+      if (u.status !== "active") actions.append(adminBtn("Approve", u.id, "active", holder));
+      if (u.status !== "revoked") actions.append(adminBtn("Revoke", u.id, "revoked", holder));
+    }
+    row.append(actions);
+    holder.append(row);
+  });
+}
+
+function adminBtn(label, id, status, holder) {
+  const b = document.createElement("button");
+  b.className = "btn";
+  b.style.padding = "5px 10px";
+  b.style.fontSize = "12px";
+  b.textContent = label;
+  b.addEventListener("click", async () => {
+    b.disabled = true;
+    try {
+      const r = await fetch("/api/admin/users/" + id + "/status", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: status })
+      });
+      if (!r.ok) throw new Error();
+      toast(label + "d");
+      loadAdminUsers(holder);
+    } catch (e) { toast("Failed"); b.disabled = false; }
+  });
+  return b;
+}
+
 /* ================= tabs & toast ================= */
 
 document.querySelectorAll(".tab").forEach(tab => {
@@ -1169,10 +1394,11 @@ document.querySelectorAll(".tab").forEach(tab => {
       t.classList.toggle("is-active", on);
       t.setAttribute("aria-selected", on ? "true" : "false");
     });
-    ["now", "plan", "settings"].forEach(name => {
+    ["now", "plan", "board", "settings"].forEach(name => {
       $("#view-" + name).hidden = name !== tab.dataset.tab;
     });
     window.scrollTo(0, 0);
+    if (tab.dataset.tab === "board") renderBoard();
   });
 });
 
