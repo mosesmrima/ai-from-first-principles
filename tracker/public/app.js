@@ -1040,6 +1040,33 @@ function accountCard() {
   });
   row.append(out);
   card.append(row);
+
+  if (!(STATE.user && STATE.user.isAdmin)) {
+    const danger = document.createElement("details");
+    danger.className = "howto danger";
+    danger.innerHTML = "<summary>Delete my account</summary>" +
+      '<p>This permanently removes your account, progress, and notes from the tracker. Your GitHub repo is untouched. This cannot be undone.</p>';
+    const pw = document.createElement("input");
+    pw.type = "password"; pw.className = "input"; pw.placeholder = "Confirm with your password";
+    pw.style.maxWidth = "100%"; pw.style.marginTop = "6px";
+    const delBtn = document.createElement("button");
+    delBtn.className = "btn btn-danger";
+    delBtn.style.marginTop = "8px";
+    delBtn.textContent = "Permanently delete my account";
+    delBtn.addEventListener("click", async () => {
+      if (!pw.value) { toast("Enter your password to confirm"); return; }
+      delBtn.disabled = true;
+      try {
+        const r = await fetch("/api/account/delete", { method: "POST",
+          headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: pw.value }) });
+        const d = await r.json();
+        if (!r.ok) throw new Error(d.error || "failed");
+        location.reload();
+      } catch (e) { toast(e.message || "Couldn't delete account"); delBtn.disabled = false; }
+    });
+    danger.append(pw, delBtn);
+    card.append(danger);
+  }
   return card;
 }
 
@@ -1392,6 +1419,21 @@ async function loadAdminUsers(holder) {
     if (u.id !== 1) {
       if (u.status !== "active") actions.append(adminBtn("Approve", u.id, "active", holder));
       if (u.status !== "revoked") actions.append(adminBtn("Revoke", u.id, "revoked", holder));
+      const db = document.createElement("button");
+      db.className = "btn btn-danger";
+      db.style.padding = "5px 10px"; db.style.fontSize = "12px";
+      db.textContent = "Delete";
+      db.addEventListener("click", async () => {
+        if (db.dataset.armed !== "1") { db.dataset.armed = "1"; db.textContent = "Sure?"; setTimeout(() => { db.dataset.armed = ""; db.textContent = "Delete"; }, 3000); return; }
+        db.disabled = true;
+        try {
+          const r = await fetch("/api/admin/users/" + u.id, { method: "DELETE" });
+          if (!r.ok) throw new Error();
+          toast("Deleted");
+          loadAdminUsers(holder);
+        } catch (e) { toast("Failed"); db.disabled = false; }
+      });
+      actions.append(db);
     }
     row.append(actions);
     holder.append(row);

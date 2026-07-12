@@ -256,6 +256,19 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
       ).all()).results ?? [];
       return json({ users: rows, maxUsers: MAX_USERS, invite: env.INVITE_CODE ?? null });
     }
+    const del = path.match(/^\/api\/admin\/users\/(\d+)$/);
+    if (del && method === "DELETE") {
+      const target = Number(del[1]);
+      if (target === 1) return json({ error: "cannot delete the admin account" }, 400);
+      await env.DB.batch([
+        env.DB.prepare("DELETE FROM user_steps WHERE user_id = ?").bind(target),
+        env.DB.prepare("DELETE FROM user_notes WHERE user_id = ?").bind(target),
+        env.DB.prepare("DELETE FROM user_settings WHERE user_id = ?").bind(target),
+        env.DB.prepare("DELETE FROM users WHERE id = ?").bind(target),
+      ]);
+      return json({ ok: true });
+    }
+
     const st = path.match(/^\/api\/admin\/users\/(\d+)\/status$/);
     if (st && method === "POST") {
       const target = Number(st[1]);
@@ -320,6 +333,22 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
       .run();
     const fresh = await getUser(env, userId);
     return json(await getState(env, fresh!));
+  }
+
+  // POST /api/account/delete {password} — permanent self-service deletion.
+  if (path === "/api/account/delete" && method === "POST") {
+    if (user.id === 1) return json({ error: "the admin account cannot delete itself" }, 400);
+    const b = (await req.json().catch(() => ({}))) as { password?: string };
+    if (!(await verifyPassword(b.password ?? "", user.pass_salt, user.pass_hash))) {
+      return json({ error: "wrong password" }, 401);
+    }
+    await env.DB.batch([
+      env.DB.prepare("DELETE FROM user_steps WHERE user_id = ?").bind(user.id),
+      env.DB.prepare("DELETE FROM user_notes WHERE user_id = ?").bind(user.id),
+      env.DB.prepare("DELETE FROM user_settings WHERE user_id = ?").bind(user.id),
+      env.DB.prepare("DELETE FROM users WHERE id = ?").bind(user.id),
+    ]);
+    return json({ ok: true, deleted: true }, 200, { "set-cookie": `${COOKIE}=; Path=/; Max-Age=0` });
   }
 
   const note = path.match(/^\/api\/notes\/([\w-]+)$/);

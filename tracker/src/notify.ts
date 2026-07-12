@@ -2,12 +2,16 @@
 // secrets are set) and ping the admin's ntfy topic on new signups. Everything
 // here is best-effort — a notification failure must never break the request.
 import { sendViaSES, sesConfigured } from "./ses";
+import { sendViaGmail, gmailConfigured } from "./gmail";
 
 export interface NotifyEnv {
   APP_URL?: string;
   NTFY_TOPIC?: string;
   ADMIN_EMAIL?: string;
   FROM_EMAIL?: string;
+  GMAIL_CLIENT_ID?: string;
+  GMAIL_CLIENT_SECRET?: string;
+  GMAIL_REFRESH_TOKEN?: string;
   AWS_REGION?: string;
   AWS_ACCESS_KEY_ID?: string;
   AWS_SECRET_ACCESS_KEY?: string;
@@ -53,14 +57,20 @@ function htmlWrap(text: string): string {
 }
 
 async function sendEmail(env: NotifyEnv, to: string, subject: string, text: string): Promise<boolean> {
-  if (!sesConfigured(env)) {
-    console.log(`email skipped (SES not configured): "${subject}" -> ${to}`);
-    return false;
+  // Gmail is the primary channel (free, sends as the admin's real gmail).
+  if (gmailConfigured(env)) {
+    const res = await sendViaGmail(env, { to, subject, text, html: htmlWrap(text), fromName: "AI Curriculum" });
+    if (!res.ok) console.error(`gmail send failed (${res.status}): ${res.body}`);
+    return res.ok;
   }
-  const from = `AI Curriculum <${env.FROM_EMAIL || env.ADMIN_EMAIL || "noreply@example.com"}>`;
-  const res = await sendViaSES(env, { from, to, subject, text, html: htmlWrap(text) });
-  if (!res.ok) console.error(`email failed (${res.status}): ${res.body}`);
-  return res.ok;
+  if (sesConfigured(env)) {
+    const from = `AI Curriculum <${env.FROM_EMAIL || env.ADMIN_EMAIL || "noreply@example.com"}>`;
+    const res = await sendViaSES(env, { from, to, subject, text, html: htmlWrap(text) });
+    if (!res.ok) console.error(`ses send failed (${res.status}): ${res.body}`);
+    return res.ok;
+  }
+  console.log(`email skipped (no email provider configured): "${subject}" -> ${to}`);
+  return false;
 }
 
 /** Member approved — email them the good news. */

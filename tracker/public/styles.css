@@ -1206,3 +1206,10 @@ svg { display: block; }
 .admin-status.st-active { color: var(--good); border-color: color-mix(in oklab, var(--good) 40%, transparent); }
 .admin-status.st-pending { color: var(--streak); border-color: color-mix(in oklab, var(--streak) 40%, transparent); }
 .admin-status.st-revoked { color: var(--bad); border-color: color-mix(in oklab, var(--bad) 40%, transparent); }
+
+/* ---------- danger actions ---------- */
+.btn-danger { border-color: color-mix(in oklab, var(--bad) 50%, transparent); color: var(--bad); }
+.btn-danger:hover { border-color: var(--bad); background: color-mix(in oklab, var(--bad) 10%, var(--surface-2)); }
+.howto.danger { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.howto.danger summary { color: var(--bad); }
+.howto.danger p { color: var(--text-muted); font-size: 12.5px; }
