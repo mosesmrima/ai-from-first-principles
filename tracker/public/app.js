@@ -1452,8 +1452,11 @@ function renderAdmin() {
 }
 
 function applyRoleUi() {
-  const t = document.getElementById("menu-admin");
-  if (t) t.hidden = !(STATE && STATE.user && STATE.user.isAdmin);
+  const isAdmin = !!(STATE && STATE.user && STATE.user.isAdmin);
+  ["menu-admin", "tab-admin"].forEach(id => {
+    const t = document.getElementById(id);
+    if (t) t.hidden = !isAdmin;
+  });
 }
 
 async function loadAdminUsers(holder) {
@@ -1648,39 +1651,49 @@ const MORE_VIEWS = ["badges", "settings", "admin"];
 function switchTab(name) {
   VIEWS.forEach(n => { const v = $("#view-" + n); if (v) v.hidden = n !== name; });
   document.querySelectorAll(".tabs .tab").forEach(t => {
-    const on = t.dataset.tab === name || (t.id === "tab-more" && MORE_VIEWS.includes(name));
+    const on = t.dataset.tab === name;
     t.classList.toggle("is-active", on);
-    if (t.dataset.tab) t.setAttribute("aria-selected", on ? "true" : "false");
+    t.setAttribute("aria-selected", on ? "true" : "false");
   });
-  $("#tab-more").textContent = MORE_VIEWS.includes(name)
-    ? name.charAt(0).toUpperCase() + name.slice(1) : "More";
-  hideMoreMenu();
+  document.querySelectorAll("#drawer [data-tab]").forEach(t => {
+    t.classList.toggle("is-active", t.dataset.tab === name);
+  });
+  closeDrawer();
   if (name === "board") renderBoard();
   if (name === "admin") renderAdmin();
   if (name === "badges") renderBadges();
   window.scrollTo(0, 0);
 }
 
-function hideMoreMenu() {
-  $("#more-menu").hidden = true;
-  $("#tab-more").setAttribute("aria-expanded", "false");
+function openDrawer() {
+  $("#drawer").hidden = false;
+  $("#drawer-backdrop").hidden = false;
+  $("#hamburger").setAttribute("aria-expanded", "true");
+  requestAnimationFrame(() => $("#drawer").classList.add("open"));
+}
+function closeDrawer() {
+  const d = $("#drawer");
+  if (d.hidden) return;
+  d.classList.remove("open");
+  $("#hamburger").setAttribute("aria-expanded", "false");
+  setTimeout(() => { d.hidden = true; $("#drawer-backdrop").hidden = true; }, 180);
 }
 
 document.querySelectorAll('.tabs .tab[data-tab]').forEach(tab => {
   tab.addEventListener("click", () => switchTab(tab.dataset.tab));
 });
-$("#tab-more").addEventListener("click", (e) => {
-  e.stopPropagation();
-  const m = $("#more-menu");
-  m.hidden = !m.hidden;
-  $("#tab-more").setAttribute("aria-expanded", m.hidden ? "false" : "true");
+$("#hamburger").addEventListener("click", () => {
+  $("#drawer").hidden ? openDrawer() : closeDrawer();
 });
-document.querySelectorAll("#more-menu [data-tab]").forEach(item => {
+$("#drawer-backdrop").addEventListener("click", closeDrawer);
+document.querySelectorAll("#drawer [data-tab]").forEach(item => {
   item.addEventListener("click", () => switchTab(item.dataset.tab));
 });
-document.addEventListener("click", (e) => {
-  if (!$("#more-menu").hidden && !e.target.closest("#more-menu") && e.target.id !== "tab-more") hideMoreMenu();
+$("#drawer-signout").addEventListener("click", async () => {
+  await fetch("/api/logout", { method: "POST" });
+  location.reload();
 });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeDrawer(); });
 
 let toastTimer = null;
 function toast(msg, isHtml) {

@@ -1316,3 +1316,82 @@ svg { display: block; }
 }
 .more-menu button:hover { border-color: var(--accent); color: var(--accent-strong); }
 .more-menu button[hidden] { display: none; }
+
+/* ---------- hamburger + drawer ---------- */
+.hamburger {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: color 130ms ease, border-color 130ms ease;
+}
+.hamburger:hover { color: var(--text); border-color: var(--border-strong); }
+.hamburger[aria-expanded="true"] { color: var(--accent-strong); border-color: var(--accent); }
+
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 14;
+  background: rgba(8, 9, 11, 0.45);
+}
+.drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 15;
+  width: min(76vw, 260px);
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.35);
+  padding: calc(18px + env(safe-area-inset-top)) 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transform: translateX(100%);
+  transition: transform 180ms ease;
+}
+.drawer.open { transform: translateX(0); }
+.drawer button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  padding: 12px 12px;
+  border-radius: 9px;
+  font-size: 14.5px;
+  font-weight: 550;
+  cursor: pointer;
+}
+.drawer button:hover { background: var(--surface-2); }
+.drawer button.is-active { background: var(--accent-dim); color: var(--accent-strong); }
+.drawer button[hidden] { display: none; }
+.drawer #drawer-signout {
+  margin-top: auto;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  border-radius: 0;
+  padding-top: 14px;
+}
+/* tabs back to 3 clean segments */
+.tabs { grid-template-columns: repeat(3, 1fr); }
+@media (prefers-reduced-motion: reduce) { .drawer { transition: none; } }
+
+/* ---------- responsive nav: full tabs on desktop, hamburger on mobile ---------- */
+.tabs { display: flex; }
+.tabs .tab { flex: 1; }
+.tabs .tab[hidden] { display: none; }
+
+@media (min-width: 641px) {
+  .hamburger { display: none; }
+}
+@media (max-width: 640px) {
+  .tabs .tab-desktop { display: none; }
+}

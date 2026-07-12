@@ -11,7 +11,11 @@
   <header class="app-header">
     <div class="header-top">
       <h1 class="app-title">AI Curriculum</h1>
-      <div class="header-chips"><span id="streak-chip" class="chip streak" hidden></span><span id="track-chip" class="chip" hidden></span></div>
+      <div class="header-chips"><span id="streak-chip" class="chip streak" hidden></span><span id="track-chip" class="chip" hidden></span>
+        <button id="hamburger" class="hamburger" aria-label="Menu" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
     </div>
     <div class="progress-track" aria-hidden="true"><div id="progress-fill" class="progress-fill"></div></div>
     <p id="progress-meta" class="progress-meta"></p>
@@ -21,13 +25,17 @@
     <button class="tab is-active" role="tab" aria-selected="true" data-tab="now" id="tab-now">Now</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="plan" id="tab-plan">Plan</button>
     <button class="tab" role="tab" aria-selected="false" data-tab="board" id="tab-board">Board</button>
-    <button class="tab" id="tab-more" aria-haspopup="menu" aria-expanded="false">More</button>
+    <button class="tab tab-desktop" role="tab" aria-selected="false" data-tab="badges">Badges</button>
+    <button class="tab tab-desktop" role="tab" aria-selected="false" data-tab="settings">Settings</button>
+    <button class="tab tab-desktop" role="tab" aria-selected="false" data-tab="admin" id="tab-admin" hidden>Admin</button>
   </nav>
-  <div id="more-menu" class="more-menu" role="menu" hidden>
+  <div id="drawer-backdrop" class="drawer-backdrop" hidden></div>
+  <aside id="drawer" class="drawer" role="menu" aria-label="Menu" hidden>
     <button role="menuitem" data-tab="badges">Badges</button>
     <button role="menuitem" data-tab="settings">Settings</button>
     <button role="menuitem" data-tab="admin" id="menu-admin" hidden>Admin</button>
-  </div>
+    <button role="menuitem" id="drawer-signout">Sign out</button>
+  </aside>
 
   <main id="root">
     <section id="view-now" class="view" role="tabpanel" aria-labelledby="tab-now"></section>
