@@ -57,12 +57,12 @@ function renderNow() {
   const p = STATE.plan;
   if (!p.queue.length) { root.append(el("p", { style: "padding:20px" }, "🎓 Every step done. Go reproduce a paper.")); return; }
 
-  // Recently done — the "yesterday I did X" context
+  // Recently done — context, and un-tickable (checkbox stays live so you can undo)
   if (p.recentDone.length) {
-    root.append(el("div", { className: "phase-h" }, "◀ Recently done"));
+    root.append(el("div", { className: "phase-h" },
+      el("span", {}, "◀ Recently done"), el("span", {}, "untick to undo")));
     const c = el("div", { className: "card muted" });
-    p.recentDone.forEach((s) => c.append(el("div", { className: "row step done" },
-      el("span", { className: "badge" }, KIND[s.kind] || "•"), el("span", { className: "ttl" }, s.title))));
+    p.recentDone.forEach((s) => c.append(stepRow(s)));
     root.append(c);
   }
 
