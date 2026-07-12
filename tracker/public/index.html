@@ -1,31 +1,36 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AI Curriculum Tracker</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧠</text></svg>" />
-  <link rel="stylesheet" href="/styles.css" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<title>Study</title>
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
-    <div class="wrap">
-      <h1>🧠 AI From First Principles</h1>
-      <div id="statusbar" class="statusbar">Loading…</div>
-      <nav class="tabs">
-        <button data-tab="now" class="active">Now</button>
-        <button data-tab="plan">Plan</button>
-        <button data-tab="settings">Settings</button>
-      </nav>
+  <header class="app-header">
+    <div class="header-top">
+      <h1 class="app-title">AI Curriculum</h1>
+      <div class="header-chips"><span id="streak-chip" class="chip streak" hidden></span><span id="track-chip" class="chip" hidden></span></div>
     </div>
+    <div class="progress-track" aria-hidden="true"><div id="progress-fill" class="progress-fill"></div></div>
+    <p id="progress-meta" class="progress-meta"></p>
   </header>
 
-  <main class="wrap">
-    <section id="tab-now" class="tab"></section>
-    <section id="tab-plan" class="tab hidden"></section>
-    <section id="tab-settings" class="tab hidden"></section>
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab is-active" role="tab" aria-selected="true" data-tab="now" id="tab-now">Now</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="plan" id="tab-plan">Plan</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="settings" id="tab-settings">Settings</button>
+  </nav>
+
+  <main id="root">
+    <section id="view-now" class="view" role="tabpanel" aria-labelledby="tab-now"></section>
+    <section id="view-plan" class="view" role="tabpanel" aria-labelledby="tab-plan" hidden></section>
+    <section id="view-settings" class="view" role="tabpanel" aria-labelledby="tab-settings" hidden></section>
   </main>
 
-  <script src="/app.js"></script>
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="app.js"></script>
 </body>
 </html>
