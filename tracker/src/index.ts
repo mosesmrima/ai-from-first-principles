@@ -8,7 +8,7 @@ import { WEEKS } from "./curriculum";
 import { commitFile, githubConfigured, type GhEnv } from "./github";
 import { hashPassword, verifyPassword, makeSession, readSession, encryptToken, decryptToken } from "./auth";
 import { GUIDES } from "./guides";
-import { notifyApproved, notifyRevoked, notifySignup, notifyPending } from "./notify";
+import { notifyApproved, notifyRevoked, notifySignup, notifyPending, notifyInactive } from "./notify";
 
 export interface Env {
   DB: D1Database;
@@ -29,7 +29,7 @@ export interface Env {
   GITHUB_BRANCH?: string;
 }
 
-const MAX_USERS = 5;
+const MAX_USERS = 50;
 const COOKIE = "ai_tracker_session";
 
 interface User {
@@ -514,6 +514,41 @@ export default {
             env.DB.prepare("DELETE FROM users WHERE id = ?").bind(s.id),
           ]);
           console.log(`purged revoked user ${s.id} (7-day window elapsed)`);
+        }
+
+        // inactivity policy: warn at 7 days idle, auto-disable at 14 (admin exempt).
+        const DAY = 86_400_000;
+        const now = Date.now();
+        const actives = (await env.DB.prepare(
+          "SELECT u.id, u.name, u.email, u.created_at, u.last_nudge_at, " +
+          "(SELECT MAX(done_at) FROM user_steps s WHERE s.user_id = u.id) AS last_step, " +
+          "(SELECT MAX(updated_at) FROM user_notes n WHERE n.user_id = u.id) AS last_note " +
+          "FROM users u WHERE u.status = 'active' AND u.id != 1"
+        ).all<{ id: number; name: string; email: string | null; created_at: string; last_nudge_at: string | null; last_step: string | null; last_note: string | null }>()).results ?? [];
+        for (const a of actives) {
+          const lastActive = Math.max(
+            Date.parse(a.created_at || "") || 0,
+            Date.parse(a.last_step || "") || 0,
+            Date.parse(a.last_note || "") || 0
+          );
+          if (!lastActive) continue;
+          const idleDays = Math.floor((now - lastActive) / DAY);
+          if (idleDays >= 14) {
+            await env.DB.prepare(
+              "UPDATE users SET status = 'revoked', revoke_reason = ?, revoked_at = ? WHERE id = ?"
+            ).bind("Inactivity — no activity for 2 weeks", new Date().toISOString(), a.id).run();
+            await notifyRevoked(env, a.name, a.email, "Inactivity — no activity for 2 weeks");
+            console.log(`auto-disabled user ${a.id} (${idleDays}d idle)`);
+          } else if (idleDays >= 7) {
+            const lastNudge = Date.parse(a.last_nudge_at || "") || 0;
+            // nudge once per idle spell (re-nudge only if they were active since, or 7d passed)
+            if (lastNudge < lastActive || now - lastNudge >= 7 * DAY) {
+              await notifyInactive(env, a.name, a.email, idleDays);
+              await env.DB.prepare("UPDATE users SET last_nudge_at = ? WHERE id = ?")
+                .bind(new Date().toISOString(), a.id).run();
+              console.log(`nudged user ${a.id} (${idleDays}d idle)`);
+            }
+          }
         }
 
         const users = (await env.DB.prepare("SELECT id FROM users WHERE status = 'active'").all<{ id: number }>())

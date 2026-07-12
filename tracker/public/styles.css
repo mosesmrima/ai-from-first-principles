@@ -1213,3 +1213,46 @@ svg { display: block; }
 .howto.danger { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
 .howto.danger summary { color: var(--bad); }
 .howto.danger p { color: var(--text-muted); font-size: 12.5px; }
+
+/* ---------- mobile polish ---------- */
+@media (max-width: 480px) {
+  body { font-size: 14.5px; padding: 0 12px calc(28px + env(safe-area-inset-bottom)); }
+  .app-header { padding: 14px 0 12px; }
+  .header-top { flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+  .header-chips { flex-wrap: wrap; }
+  .tab { font-size: 12.5px; padding: 8px 0; }
+  .week-title { font-size: 17px; }
+  .step { padding: 10px 10px; gap: 8px; }
+  .step-title { font-size: 14px; }
+  .step-meta { flex-wrap: wrap; row-gap: 2px; }
+  /* inputs at 16px so iOS Safari doesn't zoom on focus */
+  .input, .note-textarea { font-size: 16px; }
+  .input { max-width: 100%; }
+  .day-row { flex-wrap: wrap; gap: 5px; }
+  .day-toggle { width: 38px; height: 38px; }
+  .settings-actions, .note-actions { flex-direction: column; align-items: stretch; }
+  .settings-actions .btn, .note-actions .btn { justify-content: center; }
+  /* leaderboard rows stack their stats */
+  .board-row { flex-wrap: wrap; row-gap: 6px; padding: 10px 12px; }
+  .board-stats { flex-direction: row; align-items: baseline; gap: 8px; width: 100%; justify-content: flex-end; }
+  /* admin rows: actions drop to their own line */
+  .admin-row { flex-wrap: wrap; row-gap: 8px; }
+  .admin-actions { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
+  .revoke-picker { display: flex; width: 100%; margin-top: 6px; gap: 6px; }
+  .revoke-picker select { flex: 1; max-width: none !important; }
+  .momentum-bars { gap: 5px; }
+  .m-track { height: 38px; }
+  .timer-row { row-gap: 8px; }
+  .timer-right { margin-left: 0; width: 100%; justify-content: space-between; }
+  .badge-grid { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
+  .phase-card { padding: 22px 18px 18px; }
+  .clone-box { font-size: 10.5px; }
+  .toast { max-width: 94vw; font-size: 13px; }
+}
+
+/* comfortable tap targets everywhere */
+@media (pointer: coarse) {
+  .check { width: 40px; height: 40px; margin: -8px -6px -8px -10px; }
+  .step-link, .openbtn { padding: 4px 6px; }
+  .week summary { padding: 15px 14px; }
+}

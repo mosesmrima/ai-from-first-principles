@@ -29,6 +29,16 @@ const TEMPLATES = {
       `No action needed from you — just watch this inbox. You'll get an email here the ` +
       `moment you're approved (usually within a day).` + FOOTER,
   }),
+  inactivityNudge: (name: string, days: number, appUrl: string) => ({
+    subject: "Your study streak misses you",
+    text:
+      `Hi ${name},\n\n` +
+      `It's been ${days} days since your last activity on the AI curriculum tracker. ` +
+      `No judgement — life happens — but a heads-up on how the group works:\n\n` +
+      `Accounts with no activity for 2 weeks are disabled automatically to free the ` +
+      `seat for someone on the waitlist.\n\n` +
+      `Ticking a single step counts as activity. Your next one is waiting:\n${appUrl}` + FOOTER,
+  }),
   approved: (name: string, appUrl: string) => ({
     subject: "You're in — your study-group account is approved",
     text:
@@ -98,6 +108,13 @@ export async function notifyApproved(env: NotifyEnv, name: string, email: string
 export async function notifyRevoked(env: NotifyEnv, name: string, email: string | null, reason?: string): Promise<void> {
   if (!email) return;
   const t = TEMPLATES.revoked(name, reason || "", env.APP_URL || "");
+  await sendEmail(env, email, t.subject, t.text).catch(() => {});
+}
+
+/** Inactivity warning at 7 days idle. */
+export async function notifyInactive(env: NotifyEnv, name: string, email: string | null, days: number): Promise<void> {
+  if (!email) return;
+  const t = TEMPLATES.inactivityNudge(name, days, env.APP_URL || "");
   await sendEmail(env, email, t.subject, t.text).catch(() => {});
 }
 
