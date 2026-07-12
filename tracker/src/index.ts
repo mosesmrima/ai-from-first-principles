@@ -8,7 +8,7 @@ import { WEEKS } from "./curriculum";
 import { commitFile, githubConfigured, type GhEnv } from "./github";
 import { hashPassword, verifyPassword, makeSession, readSession, encryptToken, decryptToken } from "./auth";
 import { GUIDES } from "./guides";
-import { notifyApproved, notifyRevoked, notifySignup } from "./notify";
+import { notifyApproved, notifyRevoked, notifySignup, notifyPending } from "./notify";
 
 export interface Env {
   DB: D1Database;
@@ -37,6 +37,8 @@ interface User {
   name: string;
   email: string | null;
   status: string; // 'pending' | 'active' | 'revoked'
+  revoke_reason: string | null;
+  revoked_at: string | null;
   pass_salt: string;
   pass_hash: string;
   gh_token_enc: string | null;
@@ -191,7 +193,7 @@ async function leaderboard(env: Env) {
 
 /* ---------------- API ---------------- */
 
-async function handleApi(req: Request, env: Env, url: URL, userId: number | null): Promise<Response> {
+async function handleApi(req: Request, env: Env, url: URL, userId: number | null, ctx: ExecutionContext): Promise<Response> {
   const path = url.pathname.replace(/\/+$/, "");
   const method = req.method.toUpperCase();
   const secret = env.ACCESS_PASSWORD!;
@@ -213,9 +215,14 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
     await env.DB.prepare(
       "INSERT INTO users (name, email, status, pass_salt, pass_hash, created_at) VALUES (?, ?, 'pending', ?, ?, ?)"
     ).bind(name, email, salt, hash, new Date().toISOString()).run();
-    // admin email (best-effort) + phone push to the admin's topic
+    // admin email (best-effort) + phone push to the admin's topic — after the response
     const adminSettings = await loadSettings(env, 1);
-    await notifySignup(env, name, email, adminSettings.ntfy_topic || env.NTFY_TOPIC, adminSettings.ntfy_server);
+    ctx.waitUntil(
+      Promise.all([
+        notifySignup(env, name, email, adminSettings.ntfy_topic || env.NTFY_TOPIC, adminSettings.ntfy_server),
+        notifyPending(env, name, email),
+      ])
+    );
     // No session yet — the account must be approved by the admin first.
     return json({ ok: true, pending: true, message: "Account created — waiting for approval from the group admin." });
   }
@@ -229,8 +236,7 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
     if (!user || !(await verifyPassword(b.password ?? "", user.pass_salt, user.pass_hash))) {
       return json({ error: "wrong name or password" }, 401);
     }
-    if (user.status === "pending") return json({ error: "account not approved yet — ask the admin" }, 403);
-    if (user.status === "revoked") return json({ error: "access has been revoked" }, 403);
+    if (user.status === "pending") return json({ error: "account not approved yet — watch your email" }, 403);
     const sid = await makeSession(secret, user.id);
     return json({ ok: true }, 200, { "set-cookie": setCookie(sid) });
   }
@@ -242,7 +248,31 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
   // ---- everything below requires a session ----
   if (!userId) return json({ error: "unauthorized" }, 401);
   const user = await getUser(env, userId);
-  if (!user || user.status !== "active") return json({ error: "unauthorized" }, 401);
+  if (!user || user.status === "pending") return json({ error: "unauthorized" }, 401);
+
+  if (user.status === "revoked") {
+    if (path === "/api/state" && method === "GET") {
+      const deleteBy = user.revoked_at
+        ? new Date(new Date(user.revoked_at).getTime() + 7 * 86_400_000).toISOString().slice(0, 10)
+        : null;
+      return json({ revoked: true, reason: user.revoke_reason || "not specified", deleteBy, user: { name: user.name } });
+    }
+    if (path === "/api/account/delete" && method === "POST") {
+      const b = (await req.json().catch(() => ({}))) as { password?: string };
+      if (!(await verifyPassword(b.password ?? "", user.pass_salt, user.pass_hash))) return json({ error: "wrong password" }, 401);
+      await env.DB.batch([
+        env.DB.prepare("DELETE FROM user_steps WHERE user_id = ?").bind(user.id),
+        env.DB.prepare("DELETE FROM user_notes WHERE user_id = ?").bind(user.id),
+        env.DB.prepare("DELETE FROM user_settings WHERE user_id = ?").bind(user.id),
+        env.DB.prepare("DELETE FROM users WHERE id = ?").bind(user.id),
+      ]);
+      return json({ ok: true, deleted: true }, 200, { "set-cookie": `${COOKIE}=; Path=/; Max-Age=0` });
+    }
+    if (path === "/api/logout" && method === "POST") {
+      return json({ ok: true }, 200, { "set-cookie": `${COOKIE}=; Path=/; Max-Age=0` });
+    }
+    return json({ error: "account disabled" }, 403);
+  }
 
   // ---- admin (user 1 only) ----
   if (path.startsWith("/api/admin/")) {
@@ -273,14 +303,22 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
     if (st && method === "POST") {
       const target = Number(st[1]);
       if (target === 1) return json({ error: "cannot change the admin account" }, 400);
-      const b = (await req.json().catch(() => ({}))) as { status?: string };
+      const b = (await req.json().catch(() => ({}))) as { status?: string; reason?: string };
       if (!["active", "revoked", "pending"].includes(b.status ?? "")) return json({ error: "bad status" }, 400);
       const t = await getUser(env, target);
       if (!t) return json({ error: "no such user" }, 404);
-      const wasActive = t.status === "active";
-      await env.DB.prepare("UPDATE users SET status = ? WHERE id = ?").bind(b.status, target).run();
-      if (b.status === "active" && !wasActive) await notifyApproved(env, t.name, t.email);
-      if (b.status === "revoked" && wasActive) await notifyRevoked(env, t.name, t.email);
+      const wasRevoked = t.status === "revoked";
+      if (b.status === "revoked") {
+        await env.DB.prepare("UPDATE users SET status = 'revoked', revoke_reason = ?, revoked_at = ? WHERE id = ?")
+          .bind((b.reason || "not specified").slice(0, 200), new Date().toISOString(), target)
+          .run();
+        if (!wasRevoked) ctx.waitUntil(notifyRevoked(env, t.name, t.email, b.reason));
+      } else {
+        await env.DB.prepare("UPDATE users SET status = ?, revoke_reason = NULL, revoked_at = NULL WHERE id = ?")
+          .bind(b.status, target)
+          .run();
+        if (b.status === "active" && t.status !== "active") ctx.waitUntil(notifyApproved(env, t.name, t.email));
+      }
       return json({ ok: true });
     }
     return json({ error: "not found" }, 404);
@@ -437,13 +475,13 @@ function val(id){return document.getElementById(id).value}
 /* ---------------- entry ---------------- */
 
 export default {
-  async fetch(req: Request, env: Env): Promise<Response> {
+  async fetch(req: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(req.url);
     const userId = await readSession(env.ACCESS_PASSWORD!, getCookie(req, COOKIE));
 
     if (url.pathname.startsWith("/api/")) {
       try {
-        return await handleApi(req, env, url, userId);
+        return await handleApi(req, env, url, userId, ctx);
       } catch (err) {
         console.error("api error:", (err as Error)?.message ?? err);
         return json({ error: "internal error" }, 500);
@@ -453,7 +491,7 @@ export default {
       return new Response(LOGIN_HTML, { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
     }
     const u = await getUser(env, userId);
-    if (!u || u.status !== "active") {
+    if (!u || u.status === "pending") {
       return new Response(LOGIN_HTML, { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
     }
     return env.ASSETS.fetch(req);
@@ -463,6 +501,21 @@ export default {
   async scheduled(_e: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(
       (async () => {
+        // purge revoked accounts one week after the revocation email
+        const cutoff = new Date(Date.now() - 7 * 86_400_000).toISOString();
+        const stale = (await env.DB.prepare(
+          "SELECT id FROM users WHERE status = 'revoked' AND revoked_at IS NOT NULL AND revoked_at < ?"
+        ).bind(cutoff).all<{ id: number }>()).results ?? [];
+        for (const s of stale) {
+          await env.DB.batch([
+            env.DB.prepare("DELETE FROM user_steps WHERE user_id = ?").bind(s.id),
+            env.DB.prepare("DELETE FROM user_notes WHERE user_id = ?").bind(s.id),
+            env.DB.prepare("DELETE FROM user_settings WHERE user_id = ?").bind(s.id),
+            env.DB.prepare("DELETE FROM users WHERE id = ?").bind(s.id),
+          ]);
+          console.log(`purged revoked user ${s.id} (7-day window elapsed)`);
+        }
+
         const users = (await env.DB.prepare("SELECT id FROM users WHERE status = 'active'").all<{ id: number }>())
           .results ?? [];
         for (const u of users) {

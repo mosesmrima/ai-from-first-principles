@@ -438,11 +438,54 @@ async function apiTestReminder() {
 /* ================= rendering ================= */
 
 function render() {
+  if (STATE && STATE.revoked) { renderRevoked(); return; }
   renderHeader();
   renderNow();
   renderPlan();
   renderSettings();
   ensureTimerTick();
+}
+
+function renderRevoked() {
+  document.querySelector(".tabs").hidden = true;
+  document.querySelector(".app-header").hidden = true;
+  ["plan", "board", "settings"].forEach(n => { const v = $("#view-" + n); if (v) v.hidden = true; });
+  const view = $("#view-now");
+  view.hidden = false;
+  view.textContent = "";
+  const card = document.createElement("div");
+  card.className = "settings-card";
+  card.style.marginTop = "40px";
+  card.innerHTML =
+    '<div class="field"><span class="field-label" style="font-size:16px">Account disabled</span>' +
+    '<p class="field-hint" style="font-size:13px">Hi ' + esc(STATE.user.name) + ' — your account was disabled by the admin.</p>' +
+    '<p class="field-hint" style="font-size:13px"><strong>Reason:</strong> ' + esc(STATE.reason || "not specified") + "</p>" +
+    '<p class="field-hint" style="font-size:13px">You can <strong>appeal</strong> by replying to the email you received. ' +
+    "Otherwise no action is needed — your account and data will be deleted automatically" +
+    (STATE.deleteBy ? " on <strong>" + esc(STATE.deleteBy) + "</strong>." : " one week after the notification email.") + "</p></div>";
+  const pw = document.createElement("input");
+  pw.type = "password"; pw.className = "input"; pw.placeholder = "Confirm with your password";
+  pw.style.maxWidth = "100%";
+  const del = document.createElement("button");
+  del.className = "btn btn-danger"; del.style.marginTop = "8px";
+  del.textContent = "Delete my account and data now";
+  del.addEventListener("click", async () => {
+    if (!pw.value) { toast("Enter your password to confirm"); return; }
+    del.disabled = true;
+    try {
+      const r = await fetch("/api/account/delete", { method: "POST",
+        headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: pw.value }) });
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error || "failed");
+      location.reload();
+    } catch (e) { toast(e.message || "Couldn't delete"); del.disabled = false; }
+  });
+  const out = document.createElement("button");
+  out.className = "btn"; out.style.marginTop = "8px"; out.style.marginLeft = "8px";
+  out.textContent = "Sign out";
+  out.addEventListener("click", async () => { await fetch("/api/logout", { method: "POST" }); location.reload(); });
+  card.append(pw, del, out);
+  view.append(card);
 }
 
 function renderHeader() {
@@ -1418,7 +1461,38 @@ async function loadAdminUsers(holder) {
     actions.className = "admin-actions";
     if (u.id !== 1) {
       if (u.status !== "active") actions.append(adminBtn("Approve", u.id, "active", holder));
-      if (u.status !== "revoked") actions.append(adminBtn("Revoke", u.id, "revoked", holder));
+      if (u.status !== "revoked") {
+        const rv = document.createElement("button");
+        rv.className = "btn"; rv.style.padding = "5px 10px"; rv.style.fontSize = "12px";
+        rv.textContent = "Revoke";
+        rv.addEventListener("click", () => {
+          if (row.querySelector(".revoke-picker")) return;
+          const pick = document.createElement("span");
+          pick.className = "revoke-picker";
+          const sel = document.createElement("select");
+          sel.className = "input";
+          sel.style.cssText = "max-width:150px;padding:5px 8px;font-size:12px";
+          ["Inactivity", "Rule violation", "Seat needed for someone else", "At their request", "Other"]
+            .forEach(rr => { const o = document.createElement("option"); o.value = rr; o.textContent = rr; sel.append(o); });
+          const go = document.createElement("button");
+          go.className = "btn btn-danger"; go.style.cssText = "padding:5px 10px;font-size:12px;margin-left:6px";
+          go.textContent = "Confirm";
+          go.addEventListener("click", async () => {
+            go.disabled = true;
+            try {
+              const r = await fetch("/api/admin/users/" + u.id + "/status", { method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ status: "revoked", reason: sel.value }) });
+              if (!r.ok) throw new Error();
+              toast("Revoked — they've been emailed");
+              loadAdminUsers(holder);
+            } catch (e) { toast("Failed"); go.disabled = false; }
+          });
+          pick.append(sel, go);
+          row.append(pick);
+        });
+        actions.append(rv);
+      }
       const db = document.createElement("button");
       db.className = "btn btn-danger";
       db.style.padding = "5px 10px"; db.style.fontSize = "12px";

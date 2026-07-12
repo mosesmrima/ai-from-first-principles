@@ -20,6 +20,15 @@ export interface NotifyEnv {
 const FOOTER = "\n\n— AI From First Principles study group";
 
 const TEMPLATES = {
+  pendingConfirm: (name: string) => ({
+    subject: "Got your signup — approval pending",
+    text:
+      `Hi ${name},\n\n` +
+      `Thanks for signing up for the AI-from-first-principles study group. Your account is ` +
+      `waiting for approval from the group admin.\n\n` +
+      `No action needed from you — just watch this inbox. You'll get an email here the ` +
+      `moment you're approved (usually within a day).` + FOOTER,
+  }),
   approved: (name: string, appUrl: string) => ({
     subject: "You're in — your study-group account is approved",
     text:
@@ -32,13 +41,18 @@ const TEMPLATES = {
       `3. Run bash setup.sh inside it, then start Week 0.\n\n` +
       `See you on the leaderboard.` + FOOTER,
   }),
-  revoked: (name: string) => ({
-    subject: "Your study-group access has been paused",
+  revoked: (name: string, reason: string, appUrl: string) => ({
+    subject: "Your study-group account has been disabled",
     text:
       `Hi ${name},\n\n` +
-      `Your access to the AI curriculum tracker has been revoked by the admin — usually ` +
-      `because the account looked inactive. Your progress is kept, nothing is deleted.\n\n` +
-      `If you want back in, just reply to this email.` + FOOTER,
+      `Your account on the AI curriculum tracker has been disabled.\n\n` +
+      `Reason: ${reason || "not specified"}\n\n` +
+      `What you can do:\n` +
+      `\u2022 Appeal — just reply to this email and the admin will take a look.\n` +
+      `\u2022 Delete your account and data yourself — sign in at ${appUrl} (you'll see a ` +
+      `disabled-account page with a delete option).\n` +
+      `\u2022 Or do nothing — no action is needed. Your account and data will be ` +
+      `automatically deleted one week after this email.` + FOOTER,
   }),
   signupAlert: (name: string, email: string, appUrl: string) => ({
     subject: `New signup pending approval: ${name}`,
@@ -80,10 +94,16 @@ export async function notifyApproved(env: NotifyEnv, name: string, email: string
   await sendEmail(env, email, t.subject, t.text).catch(() => {});
 }
 
-/** Member revoked — email them, kindly. */
-export async function notifyRevoked(env: NotifyEnv, name: string, email: string | null): Promise<void> {
+/** Member revoked — email them the reason and their options. */
+export async function notifyRevoked(env: NotifyEnv, name: string, email: string | null, reason?: string): Promise<void> {
   if (!email) return;
-  const t = TEMPLATES.revoked(name);
+  const t = TEMPLATES.revoked(name, reason || "", env.APP_URL || "");
+  await sendEmail(env, email, t.subject, t.text).catch(() => {});
+}
+
+/** New registrant — confirm receipt and set expectations. */
+export async function notifyPending(env: NotifyEnv, name: string, email: string): Promise<void> {
+  const t = TEMPLATES.pendingConfirm(name);
   await sendEmail(env, email, t.subject, t.text).catch(() => {});
 }
 
