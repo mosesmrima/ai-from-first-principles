@@ -200,6 +200,71 @@ const PHASE_PRIMARY: Record<string, string> = {
   Portfolio: "",
 };
 
+// Verified per-week primary resources (researched 2026-07): the coarse weeks'
+// watch step deep-links here instead of a course homepage. Do NOT reorder or
+// add steps in coarse weeks — step ids (weekNN.i) key user progress.
+const WEEK_LINKS: Record<string, { title: string; url: string; minutes: number; extraTitle?: string; extraUrl?: string }> = {
+  week09: { title: "Watch + absorb: StatQuest \u2014 Linear Regression, Clearly Explained!!! (27 min)", url: "https://www.youtube.com/watch?v=7ArmBVF2dCs", minutes: 50, extraTitle: "ISLR book (ch. 3, free PDF)", extraUrl: "https://www.statlearning.com/" },
+  week10: { title: "Watch + absorb: StatQuest \u2014 Logistic Regression (9 min)", url: "https://www.youtube.com/watch?v=yIYKR4sgzI8", minutes: 25, extraTitle: "ISLR book (ch. 4, free PDF)", extraUrl: "https://www.statlearning.com/" },
+  week11: { title: "Watch + absorb: StatQuest \u2014 Decision and Classification Trees, Clearly Explained!!! (18 min)", url: "https://www.youtube.com/watch?v=_L39rN6gz7Y", minutes: 35, extraTitle: "ISLR book (ch. 8, free PDF)", extraUrl: "https://www.statlearning.com/" },
+  week12: { title: "Watch + absorb: StatQuest \u2014 Random Forests Part 1 (10 min)", url: "https://www.youtube.com/watch?v=J4Wdy0Wc_xQ", minutes: 25, extraTitle: "ISLR book (ch. 8.2, free PDF)", extraUrl: "https://www.statlearning.com/" },
+  week13: { title: "Watch + absorb: StatQuest \u2014 K-means clustering (9 min)", url: "https://www.youtube.com/watch?v=4b5d3muPQmA", minutes: 20, extraTitle: "ISLR book (ch. 12.4, free PDF)", extraUrl: "https://www.statlearning.com/" },
+  week14: { title: "Watch + absorb: StatQuest \u2014 PCA main ideas (6 min) + Step-by-Step (22 min)", url: "https://www.youtube.com/watch?v=HMOI_lkzW08", minutes: 55, extraTitle: "StatQuest \u2014 PCA Step-by-Step", extraUrl: "https://www.youtube.com/watch?v=FgakZw6K1QQ" },
+  week15: { title: "Read: Red Blob Games \u2014 Introduction to A* (interactive)", url: "https://www.redblobgames.com/pathfinding/a-star/introduction.html", minutes: 60 },
+  week16: { title: "Read: Kaggle Datasets \u2014 pick your capstone dataset", url: "https://www.kaggle.com/datasets", minutes: 30 },
+  week18: { title: "Watch + absorb: Karpathy micrograd, part 2 \u2014 backward per op (from 1:09:02)", url: "https://www.youtube.com/watch?v=VMj-3S1tku0&t=4142s", minutes: 65 },
+  week20: { title: "Watch + absorb: Karpathy micrograd, part 3 \u2014 MLP + training (from 1:43:55)", url: "https://www.youtube.com/watch?v=VMj-3S1tku0&t=6235s", minutes: 75 },
+  week21: { title: "Read: karpathy/micrograd repo \u2014 walkthrough + exercises", url: "https://github.com/karpathy/micrograd", minutes: 40, extraTitle: "Video final section (from 2:16:46)", extraUrl: "https://www.youtube.com/watch?v=VMj-3S1tku0&t=8206s" },
+  week22: { title: "Read: PyTorch official tutorial \u2014 Learn the Basics", url: "https://docs.pytorch.org/tutorials/beginner/basics/intro.html", minutes: 90 },
+  week23: { title: "Watch + absorb: StatQuest \u2014 ReLU In Action!!! (9 min)", url: "https://www.youtube.com/watch?v=68BZ5f7P94E", minutes: 45, extraTitle: "CS231n notes \u2014 activation functions", extraUrl: "https://cs231n.github.io/neural-networks-1/" },
+  week27: { title: "Read: karpathy/micrograd repo \u2014 study the source end to end", url: "https://github.com/karpathy/micrograd", minutes: 40, extraTitle: "karpathy/nn-zero-to-hero repo", extraUrl: "https://github.com/karpathy/nn-zero-to-hero" },
+  week28: { title: "Read: karpathy/nn-zero-to-hero repo \u2014 exercises + notebooks", url: "https://github.com/karpathy/nn-zero-to-hero", minutes: 40, extraTitle: "karpathy/micrograd repo", extraUrl: "https://github.com/karpathy/micrograd" },
+  week29: { title: "Read: CS231n notes \u2014 Convolutional Neural Networks", url: "https://cs231n.github.io/convolutional-networks/", minutes: 90 },
+  week30: { title: "Watch + absorb: 3Blue1Brown \u2014 But what is a convolution? (23 min)", url: "https://www.youtube.com/watch?v=KuXjwB4LzSA", minutes: 45, extraTitle: "CS231n conv notes", extraUrl: "https://cs231n.github.io/convolutional-networks/" },
+  week31: { title: "Read: Karpathy \u2014 The Unreasonable Effectiveness of RNNs", url: "https://karpathy.github.io/2015/05/21/rnn-effectiveness/", minutes: 60 },
+  week32: { title: "Read: colah \u2014 Understanding LSTM Networks", url: "https://colah.github.io/posts/2015-08-Understanding-LSTMs/", minutes: 45 },
+  week33: { title: "Read: Jay Alammar \u2014 The Illustrated Word2vec", url: "https://jalammar.github.io/illustrated-word2vec/", minutes: 45 },
+  week34: { title: "Read: Jay Alammar \u2014 Visualizing seq2seq + attention", url: "https://jalammar.github.io/visualizing-neural-machine-translation-mechanics-of-seq2seq-models-with-attention/", minutes: 30 },
+  week35: { title: "Watch + absorb: 3Blue1Brown \u2014 Attention in transformers (26 min)", url: "https://www.youtube.com/watch?v=eMlx5fFNoYc", minutes: 50, extraTitle: "Jay Alammar \u2014 The Illustrated Transformer", extraUrl: "https://jalammar.github.io/illustrated-transformer/" },
+  week36: { title: "Read: HF LLM Course ch. 3 \u2014 Fine-tuning (text classification)", url: "https://huggingface.co/learn/llm-course/chapter3/1", minutes: 60 },
+  week39: { title: "Watch + absorb: 3B1B \u2014 Attention in transformers (multi-head section)", url: "https://www.youtube.com/watch?v=eMlx5fFNoYc", minutes: 50, extraTitle: "Illustrated Transformer \u2014 multi-head section", extraUrl: "https://jalammar.github.io/illustrated-transformer/" },
+  week40: { title: "Read: The Annotated Transformer (Harvard NLP)", url: "https://nlp.seas.harvard.edu/annotated-transformer/", minutes: 120 },
+  week41: { title: "Read: HF LLM Course \u2014 How do Transformers work?", url: "https://huggingface.co/learn/llm-course/chapter1/4", minutes: 60 },
+  week42: { title: "Read: HF LLM Course \u2014 Transformers (decoder focus)", url: "https://huggingface.co/learn/llm-course/chapter1/4", minutes: 60, extraTitle: "Illustrated Transformer \u2014 decoder section", extraUrl: "https://jalammar.github.io/illustrated-transformer/" },
+  week44: { title: "Read: Kazemnejad \u2014 The Positional Encoding", url: "https://kazemnejad.com/blog/transformer_architecture_positional_encoding/", minutes: 60 },
+  week45: { title: "Read: karpathy/nanoGPT repo \u2014 model.py + train.py", url: "https://github.com/karpathy/nanoGPT", minutes: 40, extraTitle: "Karpathy \u2014 Let's build GPT (1h57m)", extraUrl: "https://www.youtube.com/watch?v=kCc8FmEb1nY" },
+  week46: { title: "Read: karpathy/nanoGPT repo \u2014 training loop deep dive", url: "https://github.com/karpathy/nanoGPT", minutes: 40, extraTitle: "Karpathy \u2014 Let's build GPT (1h57m)", extraUrl: "https://www.youtube.com/watch?v=kCc8FmEb1nY" },
+  week47: { title: "Read: karpathy/nanoGPT repo \u2014 sample.py + generation", url: "https://github.com/karpathy/nanoGPT", minutes: 40, extraTitle: "Karpathy \u2014 GPT Tokenizer (2h13m)", extraUrl: "https://www.youtube.com/watch?v=zduSFxRajkE" },
+  week49: { title: "Read: HF blog \u2014 Getting Started With Embeddings", url: "https://huggingface.co/blog/getting-started-with-embeddings", minutes: 60 },
+  week50: { title: "Read: Chroma docs \u2014 Getting Started", url: "https://docs.trychroma.com/docs/overview/getting-started", minutes: 45 },
+  week51: { title: "Read: Sentence-Transformers docs \u2014 Semantic Search", url: "https://www.sbert.net/examples/applications/semantic-search/README.html", minutes: 60 },
+  week52: { title: "Read: HF Cookbook \u2014 Simple RAG", url: "https://huggingface.co/learn/cookbook/rag_zephyr_langchain", minutes: 75 },
+  week53: { title: "Read: HF Cookbook \u2014 Advanced RAG", url: "https://huggingface.co/learn/cookbook/advanced_rag", minutes: 90 },
+  week54: { title: "Read: Hamel Husain \u2014 Your AI Product Needs Evals", url: "https://hamel.dev/blog/posts/evals/", minutes: 90 },
+  week55: { title: "Read: HF LLM Course \u2014 Fine-tuning with the Trainer API", url: "https://huggingface.co/learn/llm-course/chapter3/3", minutes: 60 },
+  week56: { title: "Read: HF PEFT docs \u2014 LoRA conceptual guide", url: "https://huggingface.co/docs/peft/conceptual_guides/lora", minutes: 45 },
+  week57: { title: "Read: HF Transformers docs \u2014 Quantization overview", url: "https://huggingface.co/docs/transformers/quantization/overview", minutes: 60 },
+  week58: { title: "Read: kipply \u2014 Transformer Inference Arithmetic", url: "https://kipp.ly/transformer-inference-arithmetic/", minutes: 90 },
+  week59: { title: "Read: vLLM docs \u2014 Quickstart", url: "https://docs.vllm.ai/en/latest/getting_started/quickstart.html", minutes: 45 },
+  week60: { title: "Read: vLLM docs \u2014 Quickstart (serve your capstone model)", url: "https://docs.vllm.ai/en/latest/getting_started/quickstart.html", minutes: 30 },
+  week61: { title: "Read: HF Deep RL Course \u2014 Unit 1: Intro to Deep RL", url: "https://huggingface.co/learn/deep-rl-course/unit1/introduction", minutes: 90 },
+  week62: { title: "Read: HF Deep RL Course \u2014 Unit 2: Q-Learning", url: "https://huggingface.co/learn/deep-rl-course/unit2/introduction", minutes: 90 },
+  week63: { title: "Read: OpenAI Spinning Up \u2014 Intro to Policy Optimization", url: "https://spinningup.openai.com/en/latest/spinningup/rl_intro3.html", minutes: 120 },
+  week64: { title: "Read: HF blog \u2014 Illustrating RLHF", url: "https://huggingface.co/blog/rlhf", minutes: 60 },
+  week65: { title: "Read: HF TRL docs \u2014 Dataset formats (preference data)", url: "https://huggingface.co/docs/trl/dataset_formats", minutes: 45 },
+  week66: { title: "Read: HF TRL docs \u2014 DPO Trainer", url: "https://huggingface.co/docs/trl/dpo_trainer", minutes: 60 },
+  week67: { title: "Read: EleutherAI lm-evaluation-harness repo", url: "https://github.com/EleutherAI/lm-evaluation-harness", minutes: 40 },
+  week68: { title: "Read: HF TRL docs \u2014 plan your RLHF capstone", url: "https://huggingface.co/docs/trl/index", minutes: 30 },
+  week69: { title: "Read: Claude docs \u2014 Tool use overview", url: "https://platform.claude.com/docs/en/agents-and-tools/tool-use/overview", minutes: 60 },
+  week70: { title: "Read: Lilian Weng \u2014 LLM Powered Autonomous Agents (memory)", url: "https://lilianweng.github.io/posts/2023-06-23-agent/", minutes: 90 },
+  week71: { title: "Read: ReAct paper (arXiv 2210.03629)", url: "https://arxiv.org/abs/2210.03629", minutes: 90, extraTitle: "Lilian Weng \u2014 Agents (planning section)", extraUrl: "https://lilianweng.github.io/posts/2023-06-23-agent/" },
+  week72: { title: "Read: Reflexion paper (arXiv 2303.11366)", url: "https://arxiv.org/abs/2303.11366", minutes: 90 },
+  week73: { title: "Read: Model Context Protocol docs \u2014 Introduction", url: "https://modelcontextprotocol.io/docs/getting-started/intro", minutes: 60 },
+  week74: { title: "Read: Anthropic \u2014 How we built our multi-agent research system", url: "https://www.anthropic.com/engineering/multi-agent-research-system", minutes: 45 },
+  week75: { title: "Read: Anthropic \u2014 Demystifying evals for AI agents", url: "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents", minutes: 45 },
+  week76: { title: "Read: Anthropic \u2014 Building effective agents", url: "https://www.anthropic.com/engineering/building-effective-agents", minutes: 60 },
+};
+
 // Override the coarse "watch" step for weeks with a known key video/paper.
 const SPECIAL_WATCH: Record<string, StepDef> = {
   week17: { title: "Watch + code along: Karpathy — building micrograd (2h26m)", kind: "watch", minutes: 210, url: K_MICROGRAD },
@@ -287,12 +352,18 @@ const REST: [string, string, string][] = [
 ];
 
 function expand([id, phase, title]: [string, string, string]): WeekDef {
-  const url = PHASE_PRIMARY[phase] || undefined;
-  const watch: StepDef = SPECIAL_WATCH[id] ?? {
-    title: `Watch the week's lectures — pick the specific videos (time est.)`,
-    kind: "watch",
-    minutes: 180,
-    url,
+  const link = WEEK_LINKS[id];
+  const watch: StepDef =
+    SPECIAL_WATCH[id] ??
+    (link
+      ? { title: link.title, kind: link.title.startsWith("Read:") ? "read" : "watch", minutes: link.minutes, url: link.url }
+      : { title: `Watch the week's lectures — pick the specific videos (time est.)`, kind: "watch", minutes: 180, url: PHASE_PRIMARY[phase] || undefined });
+  // A secondary reference (if researched) rides on the first build step's link.
+  const build1: StepDef = {
+    title: `Build: ${title}` + (link?.extraTitle ? ` — ref: ${link.extraTitle}` : ""),
+    kind: "build",
+    minutes: 150,
+    url: link?.extraUrl,
   };
   return {
     id,
@@ -300,7 +371,7 @@ function expand([id, phase, title]: [string, string, string]): WeekDef {
     title,
     steps: [
       watch,
-      { title: `Build: ${title}`, kind: "build", minutes: 150 },
+      build1,
       { title: `Keep building + exercises: ${title}`, kind: "build", minutes: 150 },
       { title: `Checkpoint — confirm you can explain it out loud`, kind: "checkpoint", minutes: 30 },
       { title: `Write your note & commit`, kind: "note", minutes: 30 },

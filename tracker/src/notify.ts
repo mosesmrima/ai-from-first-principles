@@ -20,6 +20,15 @@ export interface NotifyEnv {
 const FOOTER = "\n\n— AI From First Principles study group";
 
 const TEMPLATES = {
+  verifyCode: (name: string, code: string) => ({
+    subject: `${code} is your verification code`,
+    text:
+      `Hi ${name},\n\n` +
+      `Your AI study-group verification code is:\n\n` +
+      `    ${code}\n\n` +
+      `Enter it on the signup page to continue. It expires in 30 minutes.\n\n` +
+      `If you didn't sign up, you can ignore this email.` + FOOTER,
+  }),
   pendingConfirm: (name: string) => ({
     subject: "Got your signup — approval pending",
     text:
@@ -116,6 +125,12 @@ export async function notifyInactive(env: NotifyEnv, name: string, email: string
   if (!email) return;
   const t = TEMPLATES.inactivityNudge(name, days, env.APP_URL || "");
   await sendEmail(env, email, t.subject, t.text).catch(() => {});
+}
+
+/** Email verification code. */
+export async function notifyVerifyCode(env: NotifyEnv, name: string, email: string, code: string): Promise<boolean> {
+  const t = TEMPLATES.verifyCode(name, code);
+  return sendEmail(env, email, t.subject, t.text).catch(() => false);
 }
 
 /** New registrant — confirm receipt and set expectations. */

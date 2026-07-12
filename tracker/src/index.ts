@@ -8,7 +8,7 @@ import { WEEKS } from "./curriculum";
 import { commitFile, githubConfigured, type GhEnv } from "./github";
 import { hashPassword, verifyPassword, makeSession, readSession, encryptToken, decryptToken } from "./auth";
 import { GUIDES } from "./guides";
-import { notifyApproved, notifyRevoked, notifySignup, notifyPending, notifyInactive } from "./notify";
+import { notifyApproved, notifyRevoked, notifySignup, notifyPending, notifyInactive, notifyVerifyCode } from "./notify";
 
 export interface Env {
   DB: D1Database;
@@ -225,7 +225,7 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
       return json({ error: "that invite code isn't right — leave it blank to request access instead" }, 403);
     }
     if (invite) {
-      const used = await env.DB.prepare("SELECT COUNT(*) AS n FROM users WHERE joined_via_invite = 1").first<{ n: number }>();
+      const used = await env.DB.prepare("SELECT COUNT(*) AS n FROM users WHERE joined_via_invite = 1 AND status != 'unverified'").first<{ n: number }>();
       if ((used?.n ?? 0) >= INVITE_MAX_USES) {
         return json({ error: "this invite code has reached its limit — sign up without it to request access" }, 403);
       }
@@ -238,39 +238,75 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
     if (!b.password || b.password.length < 6) return json({ error: "password must be 6+ chars" }, 400);
     const count = await env.DB.prepare("SELECT COUNT(*) AS n FROM users WHERE status != 'revoked'").first<{ n: number }>();
     if ((count?.n ?? 0) >= MAX_USERS) return json({ error: `signups are capped at ${MAX_USERS} users` }, 403);
+    // stale unverified signups don't squat names/emails — replace them
+    await env.DB.prepare("DELETE FROM users WHERE status = 'unverified' AND (lower(name) = lower(?) OR lower(email) = lower(?))")
+      .bind(name, email).run();
     const dupe = await env.DB.prepare("SELECT id FROM users WHERE lower(name) = lower(?)").bind(name).first();
     if (dupe) return json({ error: "name already taken" }, 409);
     const { salt, hash } = await hashPassword(b.password);
+    const code = String(Math.floor(100000 + Math.random() * 900000));
     const res = await env.DB.prepare(
-      "INSERT INTO users (name, email, status, pass_salt, pass_hash, created_at) VALUES (?, ?, ?, ?, ?, ?) RETURNING id"
-    ).bind(name, email, autoIn ? "active" : "pending", salt, hash, new Date().toISOString()).first<{ id: number }>();
-    if (autoIn) await env.DB.prepare("UPDATE users SET joined_via_invite = 1 WHERE id = ?").bind(res!.id).run();
+      "INSERT INTO users (name, email, status, pass_salt, pass_hash, created_at, joined_via_invite, verify_code, verify_expires) " +
+        "VALUES (?, ?, 'unverified', ?, ?, ?, ?, ?, ?) RETURNING id"
+    ).bind(name, email, salt, hash, new Date().toISOString(), autoIn ? 1 : 0, code,
+      new Date(Date.now() + 30 * 60_000).toISOString()).first<{ id: number }>();
     await env.DB.prepare("INSERT INTO user_settings (user_id, key, value) VALUES (?, 'ntfy_topic', ?)")
       .bind(res!.id, genNtfyTopic()).run();
+    // Only the registrant hears about this — the admin isn't pinged until the email is proven real.
+    ctx.waitUntil(notifyVerifyCode(env, name, email, code));
+    return json({ ok: true, verify: true, message: "We emailed you a 6-digit code — enter it below." });
+  }
 
+  // POST /api/resend {email} — fresh verification code for an unverified account.
+  if (path === "/api/resend" && method === "POST") {
+    const b = (await req.json().catch(() => ({}))) as { email?: string };
+    const u = await env.DB.prepare("SELECT id, name, email FROM users WHERE lower(email) = lower(?) AND status = 'unverified'")
+      .bind((b.email ?? "").trim()).first<{ id: number; name: string; email: string }>();
+    // Always answer OK so this can't be used to probe which emails exist.
+    if (u) {
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      await env.DB.prepare("UPDATE users SET verify_code = ?, verify_expires = ? WHERE id = ?")
+        .bind(code, new Date(Date.now() + 30 * 60_000).toISOString(), u.id).run();
+      ctx.waitUntil(notifyVerifyCode(env, u.name, u.email, code));
+    }
+    return json({ ok: true, message: "If that address has an unverified signup, a new code is on its way." });
+  }
+
+  // POST /api/verify {email, code} — proves the address; then fast-pass in or queue for approval.
+  if (path === "/api/verify" && method === "POST") {
+    const b = (await req.json().catch(() => ({}))) as { email?: string; code?: string };
+    const u = await env.DB.prepare("SELECT * FROM users WHERE lower(email) = lower(?) AND status = 'unverified'")
+      .bind((b.email ?? "").trim()).first<User & { verify_code: string | null; verify_expires: string | null }>();
+    if (!u || !u.verify_code || u.verify_code !== (b.code ?? "").trim()) return json({ error: "wrong code" }, 400);
+    if (!u.verify_expires || Date.parse(u.verify_expires) < Date.now()) {
+      return json({ error: "code expired — sign up again to get a new one" }, 400);
+    }
     const adminSettings = await loadSettings(env, 1);
-    if (autoIn) {
-      // straight in: session cookie + welcome email + FYI to the admin
+    if (u.joined_via_invite) {
+      await env.DB.prepare("UPDATE users SET status = 'active', verify_code = NULL, verify_expires = NULL WHERE id = ?")
+        .bind(u.id).run();
       ctx.waitUntil(
         Promise.all([
-          notifyApproved(env, name, email),
+          notifyApproved(env, u.name, u.email),
           (async () => {
             const { sendAlert } = await import("./ntfy");
             await sendAlert(adminSettings.ntfy_topic || env.NTFY_TOPIC, "New member joined (invite code)",
-              `${name} <${email}> is in — no approval needed`, env.APP_URL, adminSettings.ntfy_server).catch(() => {});
+              `${u.name} <${u.email}> is in — no approval needed`, env.APP_URL, adminSettings.ntfy_server).catch(() => {});
           })(),
         ])
       );
-      const sid = await makeSession(secret, res!.id);
+      const sid = await makeSession(secret, u.id);
       return json({ ok: true }, 200, { "set-cookie": setCookie(sid) });
     }
+    await env.DB.prepare("UPDATE users SET status = 'pending', verify_code = NULL, verify_expires = NULL WHERE id = ?")
+      .bind(u.id).run();
     ctx.waitUntil(
       Promise.all([
-        notifySignup(env, name, email, adminSettings.ntfy_topic || env.NTFY_TOPIC, adminSettings.ntfy_server),
-        notifyPending(env, name, email),
+        notifySignup(env, u.name, u.email!, adminSettings.ntfy_topic || env.NTFY_TOPIC, adminSettings.ntfy_server),
+        notifyPending(env, u.name, u.email!),
       ])
     );
-    return json({ ok: true, pending: true, message: "Request received — the admin will review it. Watch your email." });
+    return json({ ok: true, pending: true, message: "Email verified — the admin will review your request. Watch your inbox." });
   }
 
   if (path === "/api/login" && method === "POST") {
@@ -282,6 +318,7 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
     if (!user || !(await verifyPassword(b.password ?? "", user.pass_salt, user.pass_hash))) {
       return json({ error: "wrong name or password" }, 401);
     }
+    if (user.status === "unverified") return json({ error: "email not verified — sign up again to get a fresh code" }, 403);
     if (user.status === "pending") return json({ error: "account not approved yet — watch your email" }, 403);
     const sid = await makeSession(secret, user.id);
     return json({ ok: true }, 200, { "set-cookie": setCookie(sid) });
@@ -294,7 +331,7 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
   // ---- everything below requires a session ----
   if (!userId) return json({ error: "unauthorized" }, 401);
   const user = await getUser(env, userId);
-  if (!user || user.status === "pending") return json({ error: "unauthorized" }, 401);
+  if (!user || user.status === "pending" || user.status === "unverified") return json({ error: "unauthorized" }, 401);
 
   if (user.status === "revoked") {
     if (path === "/api/state" && method === "GET") {
@@ -499,22 +536,41 @@ button:hover{background:#8b96f0}.err{color:#d98a7a;font-size:13px;min-height:18p
 <input id="li-name" placeholder="Name or email" autocomplete="username" autofocus>
 <input id="li-pass" type="password" placeholder="Password" autocomplete="current-password">
 <button>Sign in</button><div class="err" id="e1"></div>
-<p class="alt">New here? <a onclick="flip(true)">Join the study group</a></p></form>
+<p class="alt">New here? <a onclick="flip(true)">Join the study group</a> \u00b7 <a onclick="showVerify()">Have a code?</a></p></form>
 <form id="f-reg" class="hide" onsubmit="return go(event,'register')"><h1>Join the study group</h1>
 <p style="font-size:12.5px;color:#9aa1ab;margin:0 0 10px">Have an invite code? You're in instantly. No code? Sign up anyway — the admin approves requests, watch your email.</p>
+<p style="font-size:12px;color:#e0a54e;margin:0 0 10px">\u26a0 Use a real email you actually read — we verify it with a code, and approvals, reminders, and account notices all go there.</p>
 <input id="r-invite" placeholder="Invite code (optional — instant access)">
 <input id="r-name" placeholder="Display name (shown on the leaderboard)" autocomplete="username">
 <input id="r-email" type="email" placeholder="Email (so the admin knows who you are)" autocomplete="email">
 <input id="r-pass" type="password" placeholder="Choose a password (6+ chars)" autocomplete="new-password">
 <button>Create account</button><div class="err" id="e2"></div>
 <p class="alt">Already joined? <a onclick="flip(false)">Sign in</a></p></form>
+<form id="f-verify" class="hide" onsubmit="return doVerify(event)"><h1>Check your email</h1>
+<p style="font-size:12.5px;color:#9aa1ab;margin:0 0 10px">We sent a 6-digit code to your email (check spam too). It expires in 30 minutes.</p>
+<input id="v-email" type="email" placeholder="Your email" autocomplete="email">
+<input id="v-code" inputmode="numeric" placeholder="6-digit code" maxlength="6">
+<button>Verify</button>
+<p class="alt" style="margin-top:10px"><a onclick="resend()">Resend code</a> \u00b7 <a onclick="flip(false)">Back to sign in</a></p>
+<div class="err" id="e3"></div></form>
 </div><script>
-function flip(reg){document.getElementById('f-login').classList.toggle('hide',reg);document.getElementById('f-reg').classList.toggle('hide',!reg)}
+function flip(reg){document.getElementById('f-login').classList.toggle('hide',reg);document.getElementById('f-reg').classList.toggle('hide',!reg);document.getElementById('f-verify').classList.add('hide')}
+function showVerify(){['f-login','f-reg'].forEach(i=>document.getElementById(i).classList.add('hide'));document.getElementById('f-verify').classList.remove('hide')}
+async function resend(){const em=val('v-email');if(!em){document.getElementById('e3').textContent='enter your email first';return}
+await fetch('/api/resend',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:em})});
+const e=document.getElementById('e3');e.style.color='#5fb98a';e.textContent='New code sent — check your inbox.'}
+async function doVerify(ev){ev.preventDefault();
+const r=await fetch('/api/verify',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:val('v-email'),code:val('v-code')})});
+const d=await r.json().catch(()=>({}));
+if(r.ok&&d.pending){const e=document.getElementById('e3');e.style.color='#5fb98a';e.textContent=d.message}
+else if(r.ok){location.reload()}
+else{document.getElementById('e3').textContent=d.error||'failed'}return false}
 async function go(ev,mode){ev.preventDefault();
 const body=mode==='login'?{name:val('li-name'),password:val('li-pass')}:{invite:val('r-invite'),name:val('r-name'),email:val('r-email'),password:val('r-pass')};
 const r=await fetch('/api/'+mode,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
 const d=await r.json().catch(()=>({}));
-if(r.ok&&d.pending){const e=document.getElementById('e2');e.style.color='#5fb98a';e.textContent=d.message||'Created — waiting for admin approval.'}
+if(r.ok&&d.verify){document.getElementById('f-reg').classList.add('hide');document.getElementById('f-verify').classList.remove('hide');document.getElementById('v-email').value=val('r-email')}
+else if(r.ok&&d.pending){const e=document.getElementById('e2');e.style.color='#5fb98a';e.textContent=d.message||'Created — waiting for admin approval.'}
 else if(r.ok){location.reload()}
 else{document.getElementById(mode==='login'?'e1':'e2').textContent=d.error||'failed'}return false}
 function val(id){return document.getElementById(id).value}
@@ -539,7 +595,7 @@ export default {
       return new Response(LOGIN_HTML, { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
     }
     const u = await getUser(env, userId);
-    if (!u || u.status === "pending") {
+    if (!u || u.status === "pending" || u.status === "unverified") {
       return new Response(LOGIN_HTML, { status: 200, headers: { "content-type": "text/html; charset=utf-8" } });
     }
     return env.ASSETS.fetch(req);
@@ -549,6 +605,12 @@ export default {
   async scheduled(_e: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(
       (async () => {
+        // purge unverified signups older than 48h (fake/typo emails)
+        await env.DB.prepare(
+          "DELETE FROM user_settings WHERE user_id IN (SELECT id FROM users WHERE status='unverified' AND created_at < datetime('now','-2 days'))"
+        ).run();
+        await env.DB.prepare("DELETE FROM users WHERE status='unverified' AND created_at < datetime('now','-2 days')").run();
+
         // purge revoked accounts one week after the revocation email
         const cutoff = new Date(Date.now() - 7 * 86_400_000).toISOString();
         const stale = (await env.DB.prepare(
