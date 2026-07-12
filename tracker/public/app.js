@@ -429,10 +429,10 @@ async function apiSaveNote(weekId, body, push) {
 }
 
 async function apiTestReminder() {
-  if (OFFLINE) return { ok: true };
+  if (OFFLINE) return { sent: true };
   const r = await fetch("/api/test-reminder", { method: "POST" });
   if (!r.ok) throw new Error("test reminder failed");
-  return r;
+  return await r.json();
 }
 
 /* ================= rendering ================= */
@@ -867,6 +867,35 @@ function renderSettings() {
   });
   fRem.append(sw);
 
+  // ntfy topic (per-user phone push)
+  const fNtfy = document.createElement("div");
+  fNtfy.className = "field";
+  fNtfy.innerHTML = '<label class="field-label" for="set-ntfy">Phone push topic (ntfy)</label>' +
+    '<p class="field-hint">Your personal channel for the daily reminder. Pick something unguessable.</p>';
+  const inNtfy = document.createElement("input");
+  inNtfy.type = "text"; inNtfy.className = "input"; inNtfy.id = "set-ntfy";
+  inNtfy.placeholder = "e.g. ai-study-" + Math.random().toString(36).slice(2, 8);
+  inNtfy.style.maxWidth = "100%";
+  inNtfy.value = s.ntfy_topic || "";
+  fNtfy.append(inNtfy);
+  const inNtfyServer = document.createElement("input");
+  inNtfyServer.type = "text"; inNtfyServer.className = "input"; inNtfyServer.id = "set-ntfy-server";
+  inNtfyServer.placeholder = "Server (default: ntfy.sh)";
+  inNtfyServer.style.maxWidth = "100%"; inNtfyServer.style.marginTop = "6px";
+  inNtfyServer.value = s.ntfy_server || "";
+  fNtfy.append(inNtfyServer);
+  const how = document.createElement("details");
+  how.className = "howto";
+  how.innerHTML = "<summary>How to get reminders on your phone (2 minutes)</summary>" +
+    "<ol>" +
+    '<li>Install the free <strong>ntfy</strong> app: <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" rel="noopener">Android</a> \u00b7 <a href="https://apps.apple.com/us/app/ntfy/id1625396347" target="_blank" rel="noopener">iPhone</a> \u00b7 <a href="https://f-droid.org/packages/io.heckel.ntfy/" target="_blank" rel="noopener">F-Droid</a>. No account needed.</li>' +
+    "<li>Make up a topic name nobody would guess (use the placeholder suggestion above \u2014 anyone who knows the name can read your reminders).</li>" +
+    "<li>In the app: <strong>+ Subscribe to topic</strong> \u2192 keep the default server <code>ntfy.sh</code> (or use <code>ntfy.envs.net</code> if pushes are flaky \u2014 enter the same server below) \u2192 enter your topic name.</li>" +
+    "<li>Paste the same topic here, save settings, then hit <strong>Send test push</strong>. It should buzz your phone.</li>" +
+    "</ol>" +
+    "<p>You\u2019ll then get one push each study-day morning with your exact next steps and time budget.</p>";
+  fNtfy.append(how);
+
   // actions
   const actions = document.createElement("div");
   actions.className = "settings-actions";
@@ -881,7 +910,9 @@ function renderSettings() {
       start_date: inDate.value,
       session_minutes: String(inMin.value),
       study_days: days,
-      reminder_enabled: sw.getAttribute("aria-checked") === "true" ? "1" : "0"
+      reminder_enabled: sw.getAttribute("aria-checked") === "true" ? "1" : "0",
+      ntfy_topic: inNtfy.value.trim(),
+      ntfy_server: inNtfyServer.value.trim()
     };
     saveBtn.disabled = true;
     try {
@@ -900,13 +931,16 @@ function renderSettings() {
   testBtn.textContent = "Send test push";
   testBtn.addEventListener("click", async () => {
     testBtn.disabled = true;
-    try { await apiTestReminder(); toast("Test push sent"); }
+    try {
+      const r = await apiTestReminder();
+      toast(r && r.sent ? "Test push sent" : (r && r.error) || "Push failed — ntfy may be briefly unreachable; try again");
+    }
     catch (e) { toast("Couldn't send test push"); }
     finally { testBtn.disabled = false; }
   });
 
   actions.append(saveBtn, testBtn);
-  card.append(fDate, fMin, fDays, fRem, actions);
+  card.append(fDate, fMin, fDays, fRem, fNtfy, actions);
   view.append(card);
   view.append(repoCard());
   view.append(githubCard());

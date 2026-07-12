@@ -29,6 +29,11 @@
 
   "vars": {
     "APP_URL": "https://ai-tracker.mrima.workers.dev",
+    // Membership emails send via SES once AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY
+    // secrets are set. FROM_EMAIL must be a verified SES identity in AWS_REGION.
+    "ADMIN_EMAIL": "mrimamss@gmail.com",
+    "FROM_EMAIL": "mrimamss@gmail.com",
+    "AWS_REGION": "eu-central-1",
     // Notes are committed straight to this repo via the GitHub Contents API.
     // GITHUB_TOKEN is a secret (fine-grained PAT, Contents: read+write on this repo only).
     "GITHUB_OWNER": "mosesmrima",

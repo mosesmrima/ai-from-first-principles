@@ -3,11 +3,12 @@
 // session cookie, and all progress/notes/settings/GitHub config is per-user.
 // A leaderboard ranks users by server-computed progress and streak.
 import { computePlan, type Settings } from "./plan";
-import { sendSessionPush } from "./ntfy";
+import { sendSessionPush, sendAlert } from "./ntfy";
 import { WEEKS } from "./curriculum";
 import { commitFile, githubConfigured, type GhEnv } from "./github";
 import { hashPassword, verifyPassword, makeSession, readSession, encryptToken, decryptToken } from "./auth";
 import { GUIDES } from "./guides";
+import { notifyApproved, notifyRevoked, notifySignup } from "./notify";
 
 export interface Env {
   DB: D1Database;
@@ -16,6 +17,11 @@ export interface Env {
   ACCESS_PASSWORD?: string; // root secret: signs sessions, encrypts tokens
   INVITE_CODE?: string;
   NTFY_TOPIC?: string;
+  ADMIN_EMAIL?: string;
+  FROM_EMAIL?: string;
+  AWS_REGION?: string;
+  AWS_ACCESS_KEY_ID?: string;
+  AWS_SECRET_ACCESS_KEY?: string;
   // legacy single-user GitHub config — used as fallback for user 1 (owner)
   GITHUB_TOKEN?: string;
   GITHUB_OWNER?: string;
@@ -131,7 +137,7 @@ async function getState(env: Env, user: User) {
     plan,
     note,
     guide: (weekId && GUIDES[weekId]) || null,
-    curriculumRepo: "https://github.com/mosesmrima/ai-from-first-principles",
+    curriculumRepo: "https://github.com/mosesmrima/ai-curriculum-starter",
     githubReady: githubConfigured(gh),
     user: { name: user.name, isAdmin: user.id === 1, githubRepo: gh.GITHUB_OWNER ? `${gh.GITHUB_OWNER}/${gh.GITHUB_REPO}` : null },
   };
@@ -207,14 +213,18 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
     await env.DB.prepare(
       "INSERT INTO users (name, email, status, pass_salt, pass_hash, created_at) VALUES (?, ?, 'pending', ?, ?, ?)"
     ).bind(name, email, salt, hash, new Date().toISOString()).run();
+    // admin email (best-effort) + phone push to the admin's topic
+    const adminSettings = await loadSettings(env, 1);
+    await notifySignup(env, name, email, adminSettings.ntfy_topic || env.NTFY_TOPIC, adminSettings.ntfy_server);
     // No session yet — the account must be approved by the admin first.
     return json({ ok: true, pending: true, message: "Account created — waiting for approval from the group admin." });
   }
 
   if (path === "/api/login" && method === "POST") {
     const b = (await req.json().catch(() => ({}))) as { name?: string; password?: string };
-    const user = await env.DB.prepare("SELECT * FROM users WHERE lower(name) = lower(?)")
-      .bind((b.name ?? "").trim())
+    const handle = (b.name ?? "").trim();
+    const user = await env.DB.prepare("SELECT * FROM users WHERE lower(name) = lower(?) OR lower(email) = lower(?)")
+      .bind(handle, handle)
       .first<User>();
     if (!user || !(await verifyPassword(b.password ?? "", user.pass_salt, user.pass_hash))) {
       return json({ error: "wrong name or password" }, 401);
@@ -252,7 +262,12 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
       if (target === 1) return json({ error: "cannot change the admin account" }, 400);
       const b = (await req.json().catch(() => ({}))) as { status?: string };
       if (!["active", "revoked", "pending"].includes(b.status ?? "")) return json({ error: "bad status" }, 400);
+      const t = await getUser(env, target);
+      if (!t) return json({ error: "no such user" }, 404);
+      const wasActive = t.status === "active";
       await env.DB.prepare("UPDATE users SET status = ? WHERE id = ?").bind(b.status, target).run();
+      if (b.status === "active" && !wasActive) await notifyApproved(env, t.name, t.email);
+      if (b.status === "revoked" && wasActive) await notifyRevoked(env, t.name, t.email);
       return json({ ok: true });
     }
     return json({ error: "not found" }, 404);
@@ -278,7 +293,7 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
 
   if (path === "/api/settings" && method === "PUT") {
     const b = (await req.json().catch(() => ({}))) as Record<string, string>;
-    const allowed = ["start_date", "session_minutes", "study_days", "reminder_enabled", "timezone"];
+    const allowed = ["start_date", "session_minutes", "study_days", "reminder_enabled", "timezone", "ntfy_topic", "ntfy_server"];
     const stmts = [];
     for (const k of allowed) {
       if (b[k] !== undefined) {
@@ -342,8 +357,10 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
   }
 
   if (path === "/api/test-reminder" && method === "POST") {
-    const { plan } = await getState(env, user);
-    const ok = await sendSessionPush(env, plan);
+    const { plan, settings: st } = await getState(env, user);
+    const topic = st.ntfy_topic || (user.id === 1 ? env.NTFY_TOPIC : undefined);
+    if (!topic) return json({ sent: false, error: "set your ntfy topic in Settings first" });
+    const ok = await sendSessionPush(topic, plan, env.APP_URL, st.ntfy_server);
     return json({ sent: ok });
   }
 
@@ -365,7 +382,7 @@ button:hover{background:#8b96f0}.err{color:#d98a7a;font-size:13px;min-height:18p
 .alt a{color:#7b87e8;cursor:pointer;text-decoration:none}.alt a:hover{text-decoration:underline}.hide{display:none}</style></head>
 <body><div class="card">
 <form id="f-login" onsubmit="return go(event,'login')"><h1>AI Curriculum — sign in</h1>
-<input id="li-name" placeholder="Name" autocomplete="username" autofocus>
+<input id="li-name" placeholder="Name or email" autocomplete="username" autofocus>
 <input id="li-pass" type="password" placeholder="Password" autocomplete="current-password">
 <button>Sign in</button><div class="err" id="e1"></div>
 <p class="alt">New here? <a onclick="flip(true)">Join with an invite code</a></p></form>
@@ -413,19 +430,23 @@ export default {
     return env.ASSETS.fetch(req);
   },
 
-  // Daily reminder — pushes user 1's (owner's) current session to the shared ntfy topic.
+  // Daily reminder — pushes each active user's current session to their own ntfy topic.
   async scheduled(_e: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
     ctx.waitUntil(
       (async () => {
-        const owner = await getUser(env, 1);
-        if (!owner) return;
-        const settings = await loadSettings(env, 1);
-        if ((settings.reminder_enabled ?? "1") === "0") return;
-        const studyDays = settings.study_days.split(",").map((x) => parseInt(x, 10));
-        if (!studyDays.includes(new Date().getUTCDay())) return;
-        const done = await loadDone(env, 1);
-        const plan = computePlan(done, settings, Date.now());
-        await sendSessionPush(env, plan);
+        const users = (await env.DB.prepare("SELECT id FROM users WHERE status = 'active'").all<{ id: number }>())
+          .results ?? [];
+        for (const u of users) {
+          const settings = await loadSettings(env, u.id);
+          const topic = settings.ntfy_topic || (u.id === 1 ? env.NTFY_TOPIC : undefined);
+          if (!topic) continue;
+          if ((settings.reminder_enabled ?? "1") === "0") continue;
+          const studyDays = settings.study_days.split(",").map((x) => parseInt(x, 10));
+          if (!studyDays.includes(new Date().getUTCDay())) continue;
+          const done = await loadDone(env, u.id);
+          const plan = computePlan(done, settings, Date.now());
+          await sendSessionPush(topic, plan, env.APP_URL, settings.ntfy_server);
+        }
       })()
     );
   },
