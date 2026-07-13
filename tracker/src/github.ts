@@ -32,7 +32,7 @@ function b64(text: string): string {
   return btoa(bin);
 }
 
-const branchOf = (env: GhEnv) => env.GITHUB_BRANCH || "master";
+const branchOf = (env: GhEnv) => env.GITHUB_BRANCH || "main";
 
 /** Existing file's blob sha, or null if the file doesn't exist yet. */
 async function getSha(env: GhEnv, path: string): Promise<string | null> {

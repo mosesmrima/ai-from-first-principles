@@ -135,7 +135,7 @@ async function ghEnvFor(env: Env, user: User): Promise<GhEnv> {
       GITHUB_TOKEN: await decryptToken(env.ACCESS_PASSWORD!, user.gh_token_enc),
       GITHUB_OWNER: user.gh_owner,
       GITHUB_REPO: user.gh_repo,
-      GITHUB_BRANCH: user.gh_branch || "master",
+      GITHUB_BRANCH: user.gh_branch || "main",
     };
   }
   if (user.id === 1 && env.GITHUB_TOKEN) {
@@ -451,7 +451,7 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
     const enc = b.token ? await encryptToken(secret, b.token.trim()) : user.gh_token_enc;
     if (!enc) return json({ error: "a GitHub token is required the first time" }, 400);
     await env.DB.prepare("UPDATE users SET gh_token_enc = ?, gh_owner = ?, gh_repo = ?, gh_branch = ? WHERE id = ?")
-      .bind(enc, b.owner.trim(), b.repo.trim(), (b.branch ?? "master").trim(), userId)
+      .bind(enc, b.owner.trim(), b.repo.trim(), (b.branch ?? "main").trim(), userId)
       .run();
     const fresh = await getUser(env, userId);
     return json(await getState(env, fresh!));

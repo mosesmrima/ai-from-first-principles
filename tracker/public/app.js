@@ -1033,7 +1033,7 @@ function githubCard() {
   const mk = (ph, type) => { const i = document.createElement("input"); i.className = "input"; i.placeholder = ph; if (type) i.type = type; i.style.maxWidth = "100%"; return i; };
   const inOwner = mk("GitHub username (owner)");
   const inRepo = mk("Repository name");
-  const inBranch = mk("Branch (default: master)");
+  const inBranch = mk("Branch (default: main)");
   const inToken = mk(STATE.githubReady ? "New token (leave blank to keep current)" : "github_pat_…", "password");
   if (cur) { const p = cur.split("/"); inOwner.value = p[0] || ""; inRepo.value = p[1] || ""; }
   const save = document.createElement("button");

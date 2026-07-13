@@ -57,15 +57,7 @@ def matmul(a: list[list[float]], b: list[list[float]]) -> list[list[float]]:
     rows_a, cols_a = shape(a)
     rows_b, cols_b = shape(b)
     b_t = transpose(b)
-    result = []
-    if cols_a != rows_b:
-        raise ValueError("inner dimensions mismatch")
-    for i in range(rows_a):
-        row = []
-        for j in range(cols_b):
-            row.append(dot(a[i], b_t[j]))
-        result.append(row)
-        
+    result = [[dot(a[i], b_t[j]) for j in range(cols_b)] for i in range(rows_a)]   
     return result
 
 if __name__ == "__main__":
