@@ -45,11 +45,10 @@ def main():
     shear = np.array([[1.0, 1.0], [0.0, 1.0]])  # noqa: F841  (use me!)
 
     transformed = apply_transform(rotation_45, basis)
-
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
     plot_vectors(basis, ax1, colors=["C0", "C1"], labels=["î", "ĵ"])
     ax1.set_title("Original basis")
-    plot_vectors(transformed, ax2, colors=["C0", "C1"], labels=["î'", "ĵ'"])
+    plot_vectors(shear, ax2, colors=["C0", "C1"], labels=["î'", "ĵ'"])
     ax2.set_title("After 45° rotation")
     fig.tight_layout()
     plt.savefig("vector_viz.png", dpi=120)

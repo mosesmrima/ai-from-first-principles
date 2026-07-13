@@ -265,6 +265,20 @@ const WEEK_LINKS: Record<string, { title: string; url: string; minutes: number; 
   week76: { title: "Read: Anthropic \u2014 Building effective agents", url: "https://www.anthropic.com/engineering/building-effective-agents", minutes: 60 },
 };
 
+// Landmark papers, slotted into the week whose topic they match. Reading time
+// is scaled to real page counts (dense-paper pace + a one-page summary).
+const WEEK_PAPERS: Record<string, StepDef> = {
+  week41: { title: "Read paper: BERT — Devlin et al. (16 pp) + one-page summary", kind: "paper", minutes: 90, url: "https://arxiv.org/abs/1810.04805" },
+  week45: { title: "Read paper: GPT-1 — Improving Language Understanding (12 pp) + summary", kind: "paper", minutes: 60, url: "https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf" },
+  week46: { title: "Read paper: GPT-2 — LMs are Unsupervised Multitask Learners (24 pp) + summary", kind: "paper", minutes: 90, url: "https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf" },
+  week47: { title: "Read paper: GPT-3 — read §1–5, skim the rest (75 pp!) + summary", kind: "paper", minutes: 120, url: "https://arxiv.org/abs/2005.14165" },
+  week48: { title: "Read paper: Chinchilla — focus the scaling-law sections (36 pp) + summary", kind: "paper", minutes: 75, url: "https://arxiv.org/abs/2203.15556" },
+  week55: { title: "Read paper: LLaMA — Open & Efficient Foundation LMs (27 pp) + summary", kind: "paper", minutes: 90, url: "https://arxiv.org/abs/2302.13971" },
+  week58: { title: "Read paper: FlashAttention — core idea §1–3 (34 pp) + summary", kind: "paper", minutes: 75, url: "https://arxiv.org/abs/2205.14135" },
+  week68: { title: "Read paper: Constitutional AI — methods focus (34 pp) + summary", kind: "paper", minutes: 90, url: "https://arxiv.org/abs/2212.08073" },
+  week69: { title: "Read paper: Toolformer — LMs teach themselves tools (23 pp) + summary", kind: "paper", minutes: 75, url: "https://arxiv.org/abs/2302.04761" },
+};
+
 // Override the coarse "watch" step for weeks with a known key video/paper.
 const SPECIAL_WATCH: Record<string, StepDef> = {
   week17: { title: "Watch + code along: Karpathy — building micrograd (2h26m)", kind: "watch", minutes: 210, url: K_MICROGRAD },
@@ -365,18 +379,16 @@ function expand([id, phase, title]: [string, string, string]): WeekDef {
     minutes: 150,
     url: link?.extraUrl,
   };
-  return {
-    id,
-    phase,
-    title,
-    steps: [
-      watch,
-      build1,
-      { title: `Keep building + exercises: ${title}`, kind: "build", minutes: 150 },
-      { title: `Checkpoint — confirm you can explain it out loud`, kind: "checkpoint", minutes: 30 },
-      { title: `Write your note & commit`, kind: "note", minutes: 30 },
-    ],
-  };
+  const steps: StepDef[] = [
+    watch,
+    build1,
+    { title: `Keep building + exercises: ${title}`, kind: "build", minutes: 150 },
+    { title: `Checkpoint — confirm you can explain it out loud`, kind: "checkpoint", minutes: 30 },
+  ];
+  const paper = WEEK_PAPERS[id];
+  if (paper) steps.push(paper);
+  steps.push({ title: `Write your note & commit`, kind: "note", minutes: 30 });
+  return { id, phase, title, steps };
 }
 
 export const WEEKS: WeekDef[] = [...DETAILED, ...REST.map(expand)];
