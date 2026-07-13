@@ -34,10 +34,7 @@ def apply_transform(matrix: np.ndarray, vectors: np.ndarray) -> np.ndarray:
     TODO: implement with matrix multiplication. Remember: to transform row vectors,
     compute `vectors @ matrix.T` (or transpose your mental model — try both and see).
     """
-    matrix_T = matrix.T
-    result = [vector @ matrix_T for vector in vectors]
-    return np.ndarray(result)
-
+    return vectors @ matrix.T
 
 def main():
     basis = np.array([[1.0, 0.0], [0.0, 1.0]])  # î and ĵ
