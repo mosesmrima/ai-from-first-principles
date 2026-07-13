@@ -34,7 +34,9 @@ def apply_transform(matrix: np.ndarray, vectors: np.ndarray) -> np.ndarray:
     TODO: implement with matrix multiplication. Remember: to transform row vectors,
     compute `vectors @ matrix.T` (or transpose your mental model — try both and see).
     """
-    raise NotImplementedError("Week 2: apply the 2x2 matrix to each vector")
+    matrix_T = matrix.T
+    result = [vector @ matrix_T for vector in vectors]
+    return np.ndarray(result)
 
 
 def main():
