@@ -2,6 +2,7 @@
 // rolling queue of the next unfinished steps (~one sitting), with honest per-step
 // times. Modules are assigned to weeks; you do what fits and the rest carries over.
 import { WEEKS, type Kind } from "./curriculum";
+import { GUIDES, type Guide } from "./guides";
 
 const DAY = 86_400_000;
 
@@ -35,6 +36,7 @@ export interface WeekSummary {
   doneSteps: number;
   totalSteps: number;
   steps: Step[];
+  guide: Guide | null;
 }
 
 function iso(ts: number): string {
@@ -96,6 +98,7 @@ export function computePlan(done: Set<string>, settings: Settings, now: number):
         weekId: s.weekId, phase: s.phase, title: s.weekTitle, weekIndex: s.weekIndex,
         startDate: s.weekIndex >= 0 ? iso(base + s.weekIndex * 7 * DAY) : null,
         totalMinutes: 0, doneSteps: 0, totalSteps: 0, steps: [],
+        guide: GUIDES[s.weekId] ?? null,
       };
       weeks.push(w);
     }

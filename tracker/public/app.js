@@ -843,7 +843,20 @@ function renderPlan() {
     ul.className = "step-list";
     (w.steps || []).forEach(s => ul.append(stepRow(s)));
 
-    det.append(sum, ul);
+    det.append(sum);
+    if (w.guide && (w.guide.why || (w.guide.remember || []).length)) {
+      const g = document.createElement("div");
+      g.className = "guide-card guide-inline";
+      let gh = "";
+      if (w.guide.why) gh += '<h2 class="section-label">Why this week matters</h2><p class="guide-why">' + esc(w.guide.why) + "</p>";
+      if (w.guide.remember && w.guide.remember.length) {
+        gh += '<p class="guide-sub">Worth remembering</p><ul class="guide-list">' +
+          w.guide.remember.map(r => "<li>" + esc(r) + "</li>").join("") + "</ul>";
+      }
+      g.innerHTML = gh;
+      det.append(g);
+    }
+    det.append(ul);
     view.append(det);
   });
 }

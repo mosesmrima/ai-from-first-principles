@@ -1425,3 +1425,8 @@ svg { display: block; }
   cursor: pointer;
 }
 .drawer-x:hover { color: var(--text); border-color: var(--border-strong); }
+
+/* guide inside plan dropdowns */
+.guide-inline { margin: 0 8px 8px; border-radius: 10px; }
+.guide-inline .guide-why { font-size: 13px; }
+.guide-inline .guide-list li { font-size: 12.5px; }
