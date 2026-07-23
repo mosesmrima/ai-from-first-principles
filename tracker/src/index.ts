@@ -8,7 +8,7 @@ import { WEEKS } from "./curriculum";
 import { commitFile, githubConfigured, type GhEnv } from "./github";
 import { hashPassword, verifyPassword, makeSession, readSession, encryptToken, decryptToken } from "./auth";
 import { GUIDES } from "./guides";
-import { notifyApproved, notifyRevoked, notifySignup, notifyPending, notifyInactive, notifyVerifyCode } from "./notify";
+import { notifyApproved, notifyRevoked, notifySignup, notifyPending, notifyInactive, notifyVerifyCode, notifyResetCode } from "./notify";
 
 export interface Env {
   DB: D1Database;
@@ -255,6 +255,40 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
     // Only the registrant hears about this — the admin isn't pinged until the email is proven real.
     ctx.waitUntil(notifyVerifyCode(env, name, email, code));
     return json({ ok: true, verify: true, message: "We emailed you a 6-digit code — enter it below." });
+  }
+
+  // POST /api/forgot {email} — email a password-reset code (non-enumerating).
+  if (path === "/api/forgot" && method === "POST") {
+    const b = (await req.json().catch(() => ({}))) as { email?: string };
+    const u = await env.DB.prepare(
+      "SELECT id, name, email FROM users WHERE lower(email) = lower(?) AND status != 'unverified'"
+    ).bind((b.email ?? "").trim()).first<{ id: number; name: string; email: string }>();
+    if (u) {
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      await env.DB.prepare("UPDATE users SET verify_code = ?, verify_expires = ? WHERE id = ?")
+        .bind(code, new Date(Date.now() + 30 * 60_000).toISOString(), u.id).run();
+      ctx.waitUntil(notifyResetCode(env, u.name, u.email, code));
+    }
+    return json({ ok: true, message: "If that email has an account, a reset code is on its way." });
+  }
+
+  // POST /api/reset {email, code, password} — set a new password and sign in.
+  if (path === "/api/reset" && method === "POST") {
+    const b = (await req.json().catch(() => ({}))) as { email?: string; code?: string; password?: string };
+    if (!b.password || b.password.length < 6) return json({ error: "password must be 6+ chars" }, 400);
+    const u = await env.DB.prepare(
+      "SELECT * FROM users WHERE lower(email) = lower(?) AND status != 'unverified'"
+    ).bind((b.email ?? "").trim()).first<User & { verify_code: string | null; verify_expires: string | null }>();
+    if (!u || !u.verify_code || u.verify_code !== (b.code ?? "").trim()) return json({ error: "wrong code" }, 400);
+    if (!u.verify_expires || Date.parse(u.verify_expires) < Date.now()) {
+      return json({ error: "code expired — request a new one" }, 400);
+    }
+    const { salt, hash } = await hashPassword(b.password);
+    await env.DB.prepare(
+      "UPDATE users SET pass_salt = ?, pass_hash = ?, verify_code = NULL, verify_expires = NULL WHERE id = ?"
+    ).bind(salt, hash, u.id).run();
+    const sid = await makeSession(secret, u.id);
+    return json({ ok: true }, 200, { "set-cookie": setCookie(sid) });
   }
 
   // POST /api/resend {email} — fresh verification code for an unverified account.
@@ -536,7 +570,19 @@ button:hover{background:#8b96f0}.err{color:#d98a7a;font-size:13px;min-height:18p
 <input id="li-name" placeholder="Name or email" autocomplete="username" autofocus>
 <input id="li-pass" type="password" placeholder="Password" autocomplete="current-password">
 <button>Sign in</button><div class="err" id="e1"></div>
-<p class="alt">New here? <a onclick="flip(true)">Join the study group</a> \u00b7 <a onclick="showVerify()">Have a code?</a></p></form>
+<p class="alt">New here? <a onclick="flip(true)">Join the study group</a> \u00b7 <a onclick="showVerify()">Have a code?</a><br><a onclick="showForgot()">Forgot password?</a></p></form>
+<form id="f-forgot" class="hide" onsubmit="return doForgot(event)"><h1>Reset your password</h1>
+<p style="font-size:12.5px;color:#9aa1ab;margin:0 0 10px">Enter your account email and we'll send a 6-digit reset code.</p>
+<input id="fp-email" type="email" placeholder="Your email" autocomplete="email">
+<button>Send reset code</button><div class="err" id="e4"></div>
+<p class="alt"><a onclick="flip(false)">Back to sign in</a></p></form>
+<form id="f-reset" class="hide" onsubmit="return doReset(event)"><h1>Choose a new password</h1>
+<p style="font-size:12.5px;color:#9aa1ab;margin:0 0 10px">Check your email for the 6-digit code (spam too).</p>
+<input id="rp-email" type="email" placeholder="Your email" autocomplete="email">
+<input id="rp-code" inputmode="numeric" placeholder="6-digit code" maxlength="6">
+<input id="rp-pass" type="password" placeholder="New password (6+ chars)" autocomplete="new-password">
+<button>Set password &amp; sign in</button><div class="err" id="e5"></div>
+<p class="alt"><a onclick="showForgot()">Resend code</a> \u00b7 <a onclick="flip(false)">Back to sign in</a></p></form>
 <form id="f-reg" class="hide" onsubmit="return go(event,'register')"><h1>Join the study group</h1>
 <p style="font-size:12.5px;color:#9aa1ab;margin:0 0 10px">Have an invite code? You're in instantly. No code? Sign up anyway — the admin approves requests, watch your email.</p>
 <p style="font-size:12px;color:#e0a54e;margin:0 0 10px">\u26a0 Use a real email you actually read — we verify it with a code, and approvals, reminders, and account notices all go there.</p>
@@ -554,8 +600,18 @@ button:hover{background:#8b96f0}.err{color:#d98a7a;font-size:13px;min-height:18p
 <p class="alt" style="margin-top:10px"><a onclick="resend()">Resend code</a> \u00b7 <a onclick="flip(false)">Back to sign in</a></p>
 <div class="err" id="e3"></div></form>
 </div><script>
-function flip(reg){document.getElementById('f-login').classList.toggle('hide',reg);document.getElementById('f-reg').classList.toggle('hide',!reg);document.getElementById('f-verify').classList.add('hide')}
-function showVerify(){['f-login','f-reg'].forEach(i=>document.getElementById(i).classList.add('hide'));document.getElementById('f-verify').classList.remove('hide')}
+function flip(reg){document.getElementById('f-login').classList.toggle('hide',reg);document.getElementById('f-reg').classList.toggle('hide',!reg);['f-verify','f-forgot','f-reset'].forEach(i=>document.getElementById(i).classList.add('hide'))}
+function showForgot(){['f-login','f-reg','f-verify','f-reset'].forEach(i=>document.getElementById(i).classList.add('hide'));document.getElementById('f-forgot').classList.remove('hide')}
+async function doForgot(ev){ev.preventDefault();
+await fetch('/api/forgot',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:val('fp-email')})});
+['f-forgot'].forEach(i=>document.getElementById(i).classList.add('hide'));
+document.getElementById('f-reset').classList.remove('hide');
+document.getElementById('rp-email').value=val('fp-email');return false}
+async function doReset(ev){ev.preventDefault();
+const r=await fetch('/api/reset',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:val('rp-email'),code:val('rp-code'),password:val('rp-pass')})});
+const d=await r.json().catch(()=>({}));
+if(r.ok){location.reload()}else{document.getElementById('e5').textContent=d.error||'failed'}return false}
+function showVerify(){['f-login','f-reg','f-forgot','f-reset'].forEach(i=>document.getElementById(i).classList.add('hide'));document.getElementById('f-verify').classList.remove('hide')}
 async function resend(){const em=val('v-email');if(!em){document.getElementById('e3').textContent='enter your email first';return}
 await fetch('/api/resend',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:em})});
 const e=document.getElementById('e3');e.style.color='#5fb98a';e.textContent='New code sent — check your inbox.'}

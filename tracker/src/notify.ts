@@ -127,6 +127,15 @@ export async function notifyInactive(env: NotifyEnv, name: string, email: string
   await sendEmail(env, email, t.subject, t.text).catch(() => {});
 }
 
+/** Password reset code. */
+export async function notifyResetCode(env: NotifyEnv, name: string, email: string, code: string): Promise<boolean> {
+  return sendEmail(env, email, `${code} is your password reset code`,
+    `Hi ${name},\n\nYour password reset code is:\n\n    ${code}\n\n` +
+    `Enter it on the sign-in page (Forgot password?) to choose a new password. ` +
+    `It expires in 30 minutes.\n\nIf you didn't request this, ignore this email — ` +
+    `your password is unchanged.` + FOOTER).catch(() => false);
+}
+
 /** Email verification code. */
 export async function notifyVerifyCode(env: NotifyEnv, name: string, email: string, code: string): Promise<boolean> {
   const t = TEMPLATES.verifyCode(name, code);
