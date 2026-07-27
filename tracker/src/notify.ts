@@ -89,7 +89,7 @@ function htmlWrap(text: string): string {
   );
 }
 
-async function sendEmail(env: NotifyEnv, to: string, subject: string, text: string): Promise<boolean> {
+export async function sendEmail(env: NotifyEnv, to: string, subject: string, text: string): Promise<boolean> {
   // Gmail is the primary channel (free, sends as the admin's real gmail).
   if (gmailConfigured(env)) {
     const res = await sendViaGmail(env, { to, subject, text, html: htmlWrap(text), fromName: "AI Curriculum" });

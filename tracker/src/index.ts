@@ -18,6 +18,12 @@ export interface Env {
   INVITE_CODE?: string;
   NTFY_TOPIC?: string;
   ADMIN_EMAIL?: string;
+  // v2 (Study OS) email relay — lets the Vercel app send through this
+  // worker's Gmail credentials during the migration period.
+  RELAY_KEY?: string;
+  GMAIL_CLIENT_ID?: string;
+  GMAIL_CLIENT_SECRET?: string;
+  GMAIL_REFRESH_TOKEN?: string;
   FROM_EMAIL?: string;
   AWS_REGION?: string;
   AWS_ACCESS_KEY_ID?: string;
@@ -27,6 +33,13 @@ export interface Env {
   GITHUB_OWNER?: string;
   GITHUB_REPO?: string;
   GITHUB_BRANCH?: string;
+}
+
+/** Constant-time string compare (both sides already length-checked). */
+function timingSafeEqualStr(a: string, b: string): boolean {
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }
 
 const MAX_USERS = 50;
@@ -214,6 +227,25 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
   const path = url.pathname.replace(/\/+$/, "");
   const method = req.method.toUpperCase();
   const secret = env.ACCESS_PASSWORD!;
+
+  // ---- v2 email relay (additive; Study OS on Vercel sends through this
+  // worker's existing Gmail credentials until it grows its own provider) ----
+  if (path === "/api/relay/email" && method === "POST") {
+    const key = req.headers.get("x-relay-key") ?? "";
+    if (!env.RELAY_KEY || key.length !== env.RELAY_KEY.length ||
+        !timingSafeEqualStr(key, env.RELAY_KEY)) {
+      return json({ error: "unauthorized" }, 401);
+    }
+    const b = (await req.json().catch(() => ({}))) as {
+      to?: string; subject?: string; text?: string;
+    };
+    if (!b.to || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(b.to) || !b.subject || !b.text) {
+      return json({ error: "to, subject, text required" }, 400);
+    }
+    const { sendEmail } = await import("./notify");
+    const ok = await sendEmail(env, b.to, b.subject.slice(0, 200), b.text.slice(0, 20_000));
+    return json({ ok });
+  }
 
   // ---- public: register / login ----
   if (path === "/api/register" && method === "POST") {
