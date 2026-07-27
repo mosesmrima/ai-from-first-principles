@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/styles.css">
+  <link rel="stylesheet" href="theme-light.css">
+  <script src="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/_ds_bundle.js"></script>
+  <style>
+    a{color:var(--color-accent)} a:hover{color:var(--color-accent-400)}
+    @keyframes fade-up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+  </style>
+</helmet>
+<div data-screen-label="Settings" data-theme="{{ theme }}" style="container-type:inline-size;min-height:100%;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body)">
+<sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
+<div style="max-width:680px;margin:0 auto;padding:clamp(16px,3cqw,36px);display:flex;flex-direction:column;gap:20px">
+  <div>
+    <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent);margin-bottom:6px">Settings</div>
+    <h2 style="font-size:clamp(24px,3.2cqw,30px);margin:0">Make it fit your mornings.</h2>
+  </div>
+  <div class="card elev-sm" style="padding:20px;gap:14px">
+    <div class="card-kicker">Schedule</div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap">
+      <div class="field" style="flex:1;min-width:160px">
+        <label>Start date</label>
+        <input class="input" value="May 26, 2026" readOnly="{{ true }}">
+      </div>
+      <div class="field" style="flex:1;min-width:160px">
+        <label>Session length</label>
+        <div style="display:inline-flex;gap:5px">
+          <sc-for list="{{ lengths }}" as="l" hint-placeholder-count="3">
+            <button onClick="{{ l.onSet }}" style="{{ l.style }}">{{ l.v }}</button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>Study days</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <sc-for list="{{ days }}" as="dy" hint-placeholder-count="7">
+          <button onClick="{{ dy.onSet }}" style="{{ dy.style }}">{{ dy.v }}</button>
+        </sc-for>
+      </div>
+      <div class="text-muted" style="font-size:11.5px;margin-top:7px">Streaks only count scheduled days — Sunday off doesn't break one.</div>
+    </div>
+  </div>
+  <div class="card elev-sm" style="padding:20px;gap:12px">
+    <div class="card-kicker">Notifications</div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px">Email nudges</div>
+        <div class="text-muted" style="font-size:11.5px">A quiet 5:15am "queue is ready" — never more than one a day.</div>
+      </div>
+      <button aria-label="Toggle email nudges" onClick="{{ tEmail }}" style="{{ emailStyle }}"><span style="{{ emailKnob }}"></span></button>
+    </div>
+    <div style="height:1px;background:linear-gradient(to right,transparent,var(--color-divider) 48px,var(--color-divider) calc(100% - 48px),transparent)"></div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px">Phone push via ntfy</div>
+        <div class="text-muted" style="font-size:11.5px">Free, no account. Install ntfy, subscribe to your private topic.</div>
+      </div>
+      <button aria-label="Toggle ntfy push" onClick="{{ tNtfy }}" style="{{ ntfyStyle }}"><span style="{{ ntfyKnob }}"></span></button>
+    </div>
+    <sc-if value="{{ ntfyOn }}" hint-placeholder-val="{{ false }}">
+      <div style="border-radius:10px;background:var(--color-bg);padding:14px 16px;display:flex;flex-direction:column;gap:8px;animation:fade-up .2s ease">
+        <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent)">Setup — two minutes</div>
+        <ol style="margin:0;padding-left:18px;font-size:12.5px;line-height:1.7" class="text-muted">
+          <li>Install <span style="color:var(--color-text)">ntfy</span> from the App Store / Play Store.</li>
+          <li>Subscribe to the topic below (it's yours alone).</li>
+          <li>Send yourself the test — if your phone buzzes, you're done.</li>
+        </ol>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <code style="font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--color-neutral-900);border-radius:7px;padding:6px 10px">ntfy.sh/studyos-alex-7f2k</code>
+          <button class="btn btn-secondary" onClick="{{ testPush }}" style="font-size:12px">Send test push</button>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+  <div class="card elev-sm" style="padding:20px;gap:12px">
+    <div class="card-kicker">GitHub</div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="width:34px;height:34px;border-radius:9px;background:var(--color-accent-900);color:var(--color-accent-300);display:grid;place-items:center;flex:none">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 15.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM17 4.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 8.5v7M17 8.5c0 4.5-4 4-7 5.5"></path></svg>
+      </span>
+      <div style="flex:1;min-width:180px">
+        <div style="font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">alexrivera/ai-first-principles-notes
+          <span class="tag tag-accent" style="display:inline-flex;gap:5px;align-items:center"><span style="width:5px;height:5px;border-radius:50%;background:currentColor;display:inline-block"></span>connected</span>
+        </div>
+        <div class="text-muted" style="font-size:11.5px;margin-top:2px">Notes publish to /notes/week-09.md · last push 6:12am · 48 commits</div>
+      </div>
+      <button class="btn btn-secondary" onClick="{{ disconnect }}" style="font-size:12.5px">Disconnect</button>
+    </div>
+  </div>
+  <div class="card elev-sm" style="padding:20px;gap:14px">
+    <div class="card-kicker">Account</div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap">
+      <div class="field" style="flex:1;min-width:200px">
+        <label>Email</label>
+        <input class="input" value="alex.rivera.ml@gmail.com" readOnly="{{ true }}">
+      </div>
+      <div class="field" style="align-self:flex-end">
+        <button class="btn btn-secondary">Change password</button>
+      </div>
+    </div>
+    <div style="border-radius:10px;border:1px solid color-mix(in srgb,oklch(0.62 0.15 25) 45%,transparent);padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <svg style="flex:none" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="oklch(0.72 0.1 25)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4 2.8 19.5h18.4zM12 10v4M12 16.8v.4"></path></svg>
+      <div style="flex:1;min-width:180px">
+        <div style="font-size:13.5px;color:oklch(0.72 0.1 25)">Delete account</div>
+        <div class="text-muted" style="font-size:11.5px">Removes your progress, notes stay in your GitHub repo. No undo.</div>
+      </div>
+      <button onClick="{{ askDelete }}" style="font:inherit;font-size:12.5px;padding:6px 12px;border-radius:8px;cursor:pointer;background:transparent;border:1px solid color-mix(in srgb,oklch(0.62 0.15 25) 55%,transparent);color:oklch(0.72 0.1 25)" style-hover="background:color-mix(in srgb,oklch(0.62 0.15 25) 12%,transparent)">Delete…</button>
+    </div>
+  </div>
+</div>
+<sc-if value="{{ confirmDelete }}" hint-placeholder-val="{{ false }}">
+  <div class="dialog-backdrop" style="z-index:80" onClick="{{ cancelDelete }}">
+    <div class="dialog" onClick="{{ eat }}">
+      <div class="dialog-title">Delete your account?</div>
+      <div class="dialog-body">118 hours, 196 steps and a 23-day streak. Your notes survive in GitHub; everything else goes. Type your email in the real app — here, just breathe.</div>
+      <div class="dialog-actions">
+        <button class="btn btn-secondary" onClick="{{ cancelDelete }}">Keep studying</button>
+        <button onClick="{{ cancelDelete }}" style="font:inherit;font-size:13px;padding:7px 14px;border-radius:8px;cursor:pointer;background:transparent;border:1px solid color-mix(in srgb,oklch(0.62 0.15 25) 55%,transparent);color:oklch(0.72 0.1 25)">Delete forever</button>
+      </div>
+    </div>
+  </div>
+</sc-if>
+</sc-if>
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:90;background:var(--color-surface);box-shadow:var(--shadow-md);border-radius:10px;padding:10px 16px;font-size:13.5px;display:flex;gap:8px;align-items:center;animation:fade-up .25s ease;white-space:nowrap">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0"></path></svg>
+    {{ toast }}
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:900,&quot;height&quot;:960},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;viewport&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onNavigate&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(route: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { d: true, len: '120 min', days: { Mo: 1, Tu: 1, We: 1, Th: 1, Fr: 1, Sa: 1, Su: 0 }, email: true, ntfy: true, confirmDelete: false, toast: null };
+  componentWillUnmount() { clearTimeout(this._tt); }
+  say(msg) { clearTimeout(this._tt); this.setState({ toast: msg }); this._tt = setTimeout(() => this.setState({ toast: null }), 3400); }
+  sw(on) {
+    return {
+      btn: { width: '38px', height: '22px', borderRadius: '11px', border: '1px solid ' + (on ? 'var(--color-accent)' : 'var(--color-divider)'), background: on ? 'color-mix(in srgb, var(--color-accent) 35%, transparent)' : 'var(--color-neutral-900)', cursor: 'pointer', position: 'relative', flex: 'none', padding: 0, transition: 'background .2s,border-color .2s' },
+      knob: { position: 'absolute', top: '2px', left: on ? '17px' : '2px', width: '16px', height: '16px', borderRadius: '50%', background: on ? 'var(--color-accent)' : 'var(--color-neutral-500)', display: 'block', transition: 'left .2s' },
+    };
+  }
+  renderVals() {
+    const pill = (on) => ({ font: 'inherit', fontSize: '12.5px', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', background: 'transparent', border: '1px solid var(--color-divider)', color: 'inherit', whiteSpace: 'nowrap', ...(on ? { color: 'var(--color-accent)', borderColor: 'var(--color-accent)', boxShadow: 'inset 0 0 0 1px var(--color-accent)' } : {}) });
+    const em = this.sw(this.state.email), nt = this.sw(this.state.ntfy);
+    return {
+      ready: true, theme: this.props.theme ?? 'dark', toast: this.state.toast, hasToast: !!this.state.toast,
+      lengths: ['60 min', '90 min', '120 min'].map(v => ({ v, onSet: () => this.setState({ len: v }), style: pill(this.state.len === v) })),
+      days: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map(v => ({ v, onSet: () => this.setState({ days: { ...this.state.days, [v]: this.state.days[v] ? 0 : 1 } }), style: pill(!!this.state.days[v]) })),
+      tEmail: () => this.setState({ email: !this.state.email }),
+      tNtfy: () => this.setState({ ntfy: !this.state.ntfy }),
+      emailStyle: em.btn, emailKnob: em.knob, ntfyStyle: nt.btn, ntfyKnob: nt.knob, ntfyOn: this.state.ntfy,
+      testPush: () => this.say('Test sent — check your phone.'),
+      disconnect: () => this.say('In the real app this revokes the token. Staying connected here.'),
+      askDelete: () => this.setState({ confirmDelete: true }),
+      cancelDelete: () => this.setState({ confirmDelete: false }),
+      confirmDelete: this.state.confirmDelete,
+      eat: (e) => e && e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>

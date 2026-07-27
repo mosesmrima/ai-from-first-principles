@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/styles.css">
+  <link rel="stylesheet" href="theme-light.css">
+  <script src="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/_ds_bundle.js"></script>
+  <style>
+    a{color:var(--color-accent)} a:hover{color:var(--color-accent-400)}
+    @keyframes fade-up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+  </style>
+</helmet>
+<div data-screen-label="Profile" data-theme="{{ theme }}" style="container-type:inline-size;min-height:100%;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body)">
+<sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
+<div style="max-width:980px;margin:0 auto;padding:clamp(16px,3cqw,36px);display:flex;flex-direction:column;gap:22px">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+    <span style="width:56px;height:56px;border-radius:50%;background:var(--color-accent-900);color:var(--color-accent-200);display:grid;place-items:center;font-family:var(--font-heading);font-size:19px;flex:none">AR</span>
+    <div style="flex:1;min-width:180px">
+      <h2 style="font-size:clamp(22px,3cqw,28px);margin:0">Alex Rivera</h2>
+      <div class="text-muted" style="font-size:13px;margin-top:3px">alex.rivera.ml@gmail.com · joined May 26 · week 9, phase 1</div>
+    </div>
+    <span style="display:inline-flex;align-items:center;gap:6px;background:var(--color-accent-900);color:var(--color-accent-200);border-radius:999px;padding:6px 14px;font-size:13px;white-space:nowrap">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-400)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-3.9 0-6.5-2.4-6.5-6 0-2.5 1.6-4.6 3-6.3.6 1 1.4 1.7 2.3 2C10.6 8 11 5.2 13 3c.4 3 1.6 4.5 3 6 1.3 1.4 2.5 3 2.5 6 0 3.6-2.6 6-6.5 6z"></path></svg>
+      23-day streak — longest yet</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+    <sc-for list="{{ stats }}" as="s" hint-placeholder-count="4">
+      <div class="card elev-sm" style="padding:16px;gap:2px">
+        <div class="card-kicker">{{ s.k }}</div>
+        <div style="font-family:var(--font-heading);font-weight:500;font-size:28px;line-height:1.1">{{ s.v }}</div>
+        <div class="text-muted" style="font-size:11.5px">{{ s.sub }}</div>
+      </div>
+    </sc-for>
+  </div>
+  <div class="card elev-sm" style="padding:18px;gap:12px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div class="card-kicker">Study days · last 26 weeks</div>
+      <span class="text-muted" style="font-size:11px">118 days studied · 5:30–7:30am mostly</span>
+    </div>
+    <div style="overflow-x:auto;padding-bottom:4px">
+      <div style="display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,11px);gap:3px;width:max-content">
+        <sc-for list="{{ cells }}" as="c" hint-placeholder-count="60">
+          <span title="{{ c.tip }}" style="{{ c.style }}"></span>
+        </sc-for>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--color-neutral-500)">
+      less
+      <span style="width:10px;height:10px;border-radius:3px;background:var(--color-neutral-900);display:inline-block"></span>
+      <span style="width:10px;height:10px;border-radius:3px;background:var(--color-accent-900);display:inline-block"></span>
+      <span style="width:10px;height:10px;border-radius:3px;background:var(--color-accent-700);display:inline-block"></span>
+      <span style="width:10px;height:10px;border-radius:3px;background:var(--color-accent-500);display:inline-block"></span>
+      more
+    </div>
+  </div>
+  <div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+      <h6 style="margin:0;color:var(--color-neutral-400)">Badges</h6>
+      <span class="text-muted" style="font-size:12px">6 of 12 earned</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:12px">
+      <sc-for list="{{ badges }}" as="b" hint-placeholder-count="12">
+        <div style="{{ b.cardStyle }}">
+          <span style="{{ b.tileStyle }}">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ b.iconD }}"></path></svg>
+          </span>
+          <div style="font-family:var(--font-heading);font-size:13.5px">{{ b.name }}</div>
+          <div class="text-muted" style="font-size:11px;line-height:1.4">{{ b.desc }}</div>
+          <sc-if value="{{ b.locked }}" hint-placeholder-val="{{ false }}">
+            <span class="text-muted" style="display:inline-flex;align-items:center;gap:4px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;margin-top:2px">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11V8a5 5 0 0 1 10 0v3M5.5 11h13V20h-13zM12 14.2v2.3"></path></svg>
+              locked</span>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:900},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;viewport&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onNavigate&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(route: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { d: null, I: null };
+  componentDidMount() { Promise.all([import('./data.js'), import('./icons.js')]).then(([m, i]) => this.setState({ d: m.DATA, I: i.ICON })); }
+  renderVals() {
+    const D = this.state.d, I = this.state.I;
+    const base = { ready: !!D, theme: this.props.theme ?? 'dark' };
+    if (!D) return base;
+    const cells = [];
+    const tones = ['var(--color-neutral-900)', 'var(--color-accent-900)', 'var(--color-accent-700)', 'var(--color-accent-500)'];
+    for (let w = 0; w < 26; w++) for (let d = 0; d < 7; d++) {
+      const r = Math.abs(Math.sin(w * 7.13 + d * 3.7));
+      const future = w === 25 && d > 1;
+      const lvl = future ? -1 : (d >= 5 ? (r > .75 ? 1 : 0) : r > .82 ? 3 : r > .45 ? 2 : r > .2 ? 1 : 0);
+      cells.push({
+        tip: lvl <= 0 ? 'No study' : `${lvl === 3 ? '2h+' : lvl === 2 ? '~90m' : '~40m'} studied`,
+        style: { width: '11px', height: '11px', borderRadius: '3px', display: 'block', background: future ? 'transparent' : tones[Math.max(0, lvl)], boxShadow: future ? 'none' : 'inset 0 0 0 1px color-mix(in srgb, var(--color-text) 4%, transparent)' },
+      });
+    }
+    return {
+      ...base, cells,
+      stats: [
+        { k: 'Total hours', v: '118', sub: '10.4h/wk average' },
+        { k: 'Watch hours', v: '41.2', sub: '92% completion rate' },
+        { k: 'Steps done', v: '196', sub: 'of 214 unlocked' },
+        { k: 'Notes written', v: '52', sub: '48 published to GitHub' },
+      ],
+      badges: D.badges.map(b => ({
+        ...b, iconD: I[b.icon] || I.flag, locked: !b.earned,
+        cardStyle: { display: 'flex', flexDirection: 'column', gap: '6px', padding: '14px', borderRadius: '11px', background: 'var(--color-surface)', boxShadow: 'var(--shadow-sm)', opacity: b.earned ? 1 : .55 },
+        tileStyle: { width: '32px', height: '32px', borderRadius: '9px', display: 'grid', placeItems: 'center', background: b.earned ? 'var(--color-accent-900)' : 'var(--color-neutral-900)', color: b.earned ? 'var(--color-accent-300)' : 'var(--color-neutral-500)' },
+      })),
+    };
+  }
+}
+</script>
+</body>
+</html>

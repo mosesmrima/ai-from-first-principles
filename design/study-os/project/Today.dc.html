@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/styles.css">
+  <link rel="stylesheet" href="theme-light.css">
+  <script src="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/_ds_bundle.js"></script>
+  <style>
+    a{color:var(--color-accent)} a:hover{color:var(--color-accent-400)}
+    @keyframes ck-pop{0%{transform:scale(.6)}55%{transform:scale(1.15)}100%{transform:scale(1)}}
+    @keyframes ck-draw{from{stroke-dashoffset:26}to{stroke-dashoffset:0}}
+    @keyframes fade-up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+  </style>
+</helmet>
+<div data-screen-label="Today" data-theme="{{ theme }}" style="container-type:inline-size;min-height:100%;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body)">
+<sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(16px,3cqw,36px)">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px">
+    <div style="min-width:240px">
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent);margin-bottom:6px">{{ dateLabel }} · Week 9 of 77</div>
+      <h2 style="font-size:clamp(24px,3.2cqw,32px);margin:0">Morning, Alex.</h2>
+      <div class="text-muted" style="font-size:13.5px;margin-top:5px">23 days straight — quiet and consistent. {{ leftShort }}</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span style="display:inline-flex;align-items:center;gap:6px;background:var(--color-accent-900);color:var(--color-accent-200);border-radius:999px;padding:5px 12px;font-size:12.5px;white-space:nowrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-400)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-3.9 0-6.5-2.4-6.5-6 0-2.5 1.6-4.6 3-6.3.6 1 1.4 1.7 2.3 2C10.6 8 11 5.2 13 3c.4 3 1.6 4.5 3 6 1.3 1.4 2.5 3 2.5 6 0 3.6-2.6 6-6.5 6z"></path></svg>
+        23-day streak</span>
+      <span style="display:inline-flex;align-items:center;gap:6px;background:var(--color-neutral-900);color:var(--color-neutral-300);border-radius:999px;padding:5px 12px;font-size:12.5px;white-space:nowrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>
+        On track</span>
+      <span style="display:inline-flex;align-items:center;gap:8px;background:var(--color-neutral-900);color:var(--color-neutral-300);border-radius:999px;padding:5px 12px;font-size:12.5px;white-space:nowrap">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17zM12 7.5V12l3 2"></path></svg>
+        64 / 120 min
+        <span style="width:44px;height:4px;border-radius:2px;background:var(--color-neutral-800);overflow:hidden;display:inline-block"><span style="{{ meterStyle }}"></span></span>
+      </span>
+    </div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+    <div style="flex:999 1 460px;min-width:0;display:flex;flex-direction:column;gap:18px">
+      <div class="card elev-sm" style="padding:18px 20px;gap:10px">
+        <div class="card-kicker">Why week 9 matters</div>
+        <p style="margin:0;font-size:14px;line-height:1.62;opacity:.92">{{ why }}</p>
+        <div style="height:1px;background:linear-gradient(to right,transparent,var(--color-divider) 48px,var(--color-divider) calc(100% - 48px),transparent)"></div>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <svg style="flex:none;margin-top:1px" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4l1.8 5.2L19 11l-5.2 1.8L12 18l-1.8-5.2L5 11l5.2-1.8zM19 16l.9 2.1L22 19l-2.1.9L19 22l-.9-2.1L16 19l2.1-.9z"></path></svg>
+          <p class="text-muted" style="margin:0;font-size:13px;line-height:1.55"><span style="color:var(--color-accent-300);font-weight:500">Worth remembering — </span>{{ remember }}</p>
+        </div>
+      </div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <h6 style="margin:0;color:var(--color-neutral-400);white-space:nowrap">The queue</h6>
+        <span class="text-muted" style="font-size:12px;white-space:nowrap">{{ leftLabel }}</span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:-8px">
+        <sc-for list="{{ steps }}" as="st" hint-placeholder-count="5">
+          <div style="background:var(--color-surface);border-radius:12px;box-shadow:var(--shadow-sm);overflow:hidden">
+            <div onClick="{{ st.onToggle }}" style="display:flex;gap:12px;padding:13px 14px;align-items:center;cursor:pointer" style-hover="background:color-mix(in srgb,var(--color-text) 3%, transparent)">
+              <button aria-label="Mark step done" onClick="{{ st.onCheck }}" style="width:24px;height:24px;flex:none;border-radius:8px;border:1.5px solid var(--color-divider);background:transparent;cursor:pointer;display:grid;place-items:center;padding:0" style-hover="border-color:var(--color-accent)">
+                <sc-if value="{{ st.done }}" hint-placeholder-val="{{ false }}">
+                  <span style="width:21px;height:21px;border-radius:6.5px;background:var(--color-accent);display:grid;place-items:center;animation:ck-pop .28s ease">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-bg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path style="stroke-dasharray:26;animation:ck-draw .3s .04s ease both" d="m5 12.5 4.5 4.5L19 7.5"></path></svg>
+                  </span>
+                </sc-if>
+              </button>
+              <span style="width:30px;height:30px;flex:none;border-radius:8px;background:var(--color-accent-900);color:var(--color-accent-300);display:grid;place-items:center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="{{ st.iconD }}"></path></svg>
+              </span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:14px;line-height:1.35"><span style="{{ st.titleStyle }}">{{ st.title }}</span></div>
+                <div class="text-muted" style="font-size:11.5px;margin-top:2px">{{ st.src }}</div>
+                <sc-if value="{{ st.isWatch }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:7px">
+                    <span style="width:150px;max-width:40cqw;height:4px;border-radius:2px;background:var(--color-neutral-800);position:relative;overflow:hidden;display:inline-block"><span style="{{ segStyle }}"></span></span>
+                    <span style="font-size:11px;color:var(--color-accent-300)">73% watched — auto-completes at 90%</span>
+                  </div>
+                </sc-if>
+              </div>
+              <span class="tag tag-neutral" style="flex:none;white-space:nowrap">{{ st.time }}</span>
+              <svg style="{{ st.chevStyle }}" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-neutral-500)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9.5 6 6 6-6"></path></svg>
+            </div>
+            <sc-if value="{{ st.showWatch }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:2px 14px 16px;display:flex;flex-direction:column;gap:12px;animation:fade-up .25s ease">
+                <div style="aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:var(--color-neutral-900)">
+                  <iframe src="https://www.youtube-nocookie.com/embed/PFDu9oVAE-g?rel=0" title="3Blue1Brown — Eigenvectors and eigenvalues" style="width:100%;height:100%;border:0;display:block" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="true"></iframe>
+                </div>
+                <div style="height:6px;border-radius:3px;background:var(--color-neutral-800);position:relative;overflow:hidden"><span style="{{ segStyle }}"></span></div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                  <span class="text-muted" style="font-size:12px;margin-right:auto">Watched segments · 73% — ticks itself at 90%</span>
+                  <span style="display:inline-flex;gap:5px">
+                    <sc-for list="{{ speeds }}" as="sp" hint-placeholder-count="3">
+                      <button onClick="{{ sp.onSet }}" style="{{ sp.style }}">{{ sp.v }}</button>
+                    </sc-for>
+                  </span>
+                  <button class="btn btn-ghost" onClick="{{ markConfusing }}" style="font-size:12.5px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 21V4.2c3.8-1.9 8.2 1.9 12 0V14c-3.8 1.9-8.2-1.9-12 0"></path></svg>
+                    Mark 6:42 confusing</button>
+                  <button class="btn btn-secondary" onClick="{{ openVideo }}" style="font-size:12.5px">Lesson view
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9.5 6 6 6-6 6"></path></svg></button>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ st.showRead }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:2px 14px 16px;display:flex;flex-direction:column;gap:10px;animation:fade-up .25s ease">
+                <div style="background:var(--color-bg);box-shadow:var(--shadow-sm);border-radius:10px;padding:22px clamp(16px,4cqw,34px)">
+                  <div style="font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-accent);margin-bottom:10px">Linear Algebra Done Right · §5.A</div>
+                  <div style="font-family:Georgia,'Times New Roman',serif">
+                    <h4 style="font-family:inherit;font-weight:500;font-size:19px;margin:0 0 10px">Invariant subspaces</h4>
+                    <p style="font-size:13.5px;line-height:1.7;margin:0 0 10px">Suppose T is an operator on V. A subspace U of V is <em>invariant</em> under T when Tu lands back inside U for every u in U — the operator never carries U outside itself.</p>
+                    <p style="font-size:13.5px;line-height:1.7;margin:0;opacity:.82">The one-dimensional invariant subspaces are exactly the spans of eigenvectors: T(λv) = λ(Tv) stays on the line through v. This is where Av = λv stops being a formula and becomes geometry.</p>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                  <span class="text-muted" style="font-size:12px;margin-right:auto">p. 132 of 340 · resumes where you left off</span>
+                  <button class="btn btn-secondary" onClick="{{ openLibrary }}" style="font-size:12.5px">Continue in Library
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9.5 6 6 6-6 6"></path></svg></button>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ st.showOther }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:2px 14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;animation:fade-up .25s ease">
+                <p class="text-muted" style="margin:0;font-size:13px;line-height:1.55;flex:1;min-width:200px">{{ st.detail }}</p>
+                <button class="btn btn-secondary" onClick="{{ st.onAction }}" style="font-size:12.5px">{{ st.actionLabel }}</button>
+              </div>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="flex:1 1 270px;min-width:0;display:flex;flex-direction:column;gap:14px">
+      <div class="card elev-sm" style="padding:18px;gap:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="card-kicker">Session</div>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-neutral-500)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15zM12 10v3.5M9.5 2.5h5"></path></svg>
+        </div>
+        <div style="font-family:var(--font-heading);font-weight:500;font-size:44px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.01em">{{ tLabel }}</div>
+        <div class="text-muted" style="font-size:12px">Pomodoro · 25 focus + 5 break</div>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button class="btn btn-primary" onClick="{{ tToggle }}" style="flex:1;white-space:nowrap">{{ tBtn }}</button>
+          <button class="btn btn-secondary" onClick="{{ tReset }}">Reset</button>
+        </div>
+      </div>
+      <div class="card elev-sm" style="padding:18px;gap:8px">
+        <div class="card-kicker">Today</div>
+        <div style="display:flex;align-items:baseline;gap:6px">
+          <span style="font-family:var(--font-heading);font-weight:500;font-size:30px;line-height:1">64</span>
+          <span class="text-muted" style="font-size:13px">/ 120 min</span>
+        </div>
+        <div style="height:6px;border-radius:3px;background:var(--color-neutral-800);overflow:hidden"><span style="{{ meterStyleLg }}"></span></div>
+        <div class="text-muted" style="font-size:12px;line-height:1.5">Streak already safe — the 30-minute minimum cleared at 6:02am. 56 more for a full session.</div>
+      </div>
+      <div class="card elev-sm" style="padding:18px;gap:4px">
+        <div class="card-kicker" style="margin-bottom:4px">Done this morning</div>
+        <sc-for list="{{ recent }}" as="r" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 0">
+            <span style="width:20px;height:20px;border-radius:6.5px;background:var(--color-accent-900);color:var(--color-accent-300);display:grid;place-items:center;flex:none">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>
+            </span>
+            <div style="flex:1;min-width:0;font-size:12.5px;line-height:1.35;text-decoration:line-through;opacity:.58">{{ r.title }}</div>
+            <button title="Untick — send back to the queue" class="btn btn-icon btn-ghost" onClick="{{ r.onUndo }}" style="width:26px;height:26px;opacity:.75">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5 4 9l4 4M4 9h9.5a6.5 6.5 0 0 1 0 13H9"></path></svg>
+            </button>
+          </div>
+        </sc-for>
+        <div class="text-muted" style="font-size:11px;margin-top:4px">Untick to send one back to the queue.</div>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:60;background:var(--color-surface);box-shadow:var(--shadow-md);border-radius:10px;padding:10px 16px;font-size:13.5px;display:flex;gap:8px;align-items:center;animation:fade-up .25s ease;white-space:nowrap">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-3.9 0-6.5-2.4-6.5-6 0-2.5 1.6-4.6 3-6.3.6 1 1.4 1.7 2.3 2C10.6 8 11 5.2 13 3c.4 3 1.6 4.5 3 6 1.3 1.4 2.5 3 2.5 6 0 3.6-2.6 6-6.5 6z"></path></svg>
+    {{ toast }}
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:960},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;viewport&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onNavigate&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(route: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { d: null, I: null, checked: {}, expanded: null, speed: '1×', recent: null, toast: null, tLeft: 1500, tRun: false };
+  componentDidMount() {
+    Promise.all([import('./data.js'), import('./icons.js')]).then(([m, i]) => this.setState({ d: m.DATA, I: i.ICON, recent: m.DATA.doneToday.slice() }));
+  }
+  componentWillUnmount() { clearInterval(this._iv); clearTimeout(this._tt); }
+  say(msg) { clearTimeout(this._tt); this.setState({ toast: msg }); this._tt = setTimeout(() => this.setState({ toast: null }), 3400); }
+  renderVals() {
+    const D = this.state.d, I = this.state.I;
+    const base = { ready: !!D, theme: this.props.theme ?? 'dark', toast: this.state.toast, hasToast: !!this.state.toast };
+    if (!D) return base;
+    const nav = this.props.onNavigate ?? (() => {});
+    const seg = D.video.segments.map(([a, b]) => `var(--color-accent) ${a * 100}% ${b * 100}%`).join(', transparent 0 0, ');
+    const segStyle = { position: 'absolute', inset: 0, display: 'block', borderRadius: 'inherit', background: `linear-gradient(to right, transparent 0 0, ${seg}, transparent 0 100%)` };
+    const coach = ['Nice — one down.', 'Two in a row. Quiet momentum.', "That's the rhythm.", 'Four of five. Almost a full morning.', 'Queue cleared. See you tomorrow at 5:30.'];
+    const steps = D.steps.map((s) => {
+      const done = this.state.checked[s.id] ?? s.done;
+      const exp = this.state.expanded === s.id;
+      const isWatch = s.kind === 'watch', isRead = s.kind === 'read';
+      const details = {
+        build: ['Scaffold is in /notebooks. Target: recover the top eigenvector of a random symmetric 5×5 to 1e-6.', 'Open 09-eigen.ipynb'],
+        checkpoint: ['Two matrices, paper only, no peeking. Fifteen quiet minutes.', 'Start checkpoint'],
+        note: ['Two lines is enough: what clicked, what didn\u2019t. The observer fills in the rest.', 'Open the editor'],
+      }[s.kind] || ['', ''];
+      return {
+        ...s, done, iconD: I[s.kind], time: s.min + ' min',
+        isWatch, showWatch: exp && isWatch, showRead: exp && isRead, showOther: exp && !isWatch && !isRead,
+        detail: details[0], actionLabel: details[1],
+        titleStyle: done ? { textDecoration: 'line-through', opacity: .5 } : {},
+        chevStyle: { flex: 'none', transition: 'transform .2s', transform: exp ? 'rotate(180deg)' : 'none' },
+        onToggle: () => this.setState({ expanded: exp ? null : s.id }),
+        onCheck: (e) => { e && e.stopPropagation(); const now = !done; this.setState({ checked: { ...this.state.checked, [s.id]: now } }); if (now) { const n = Object.values({ ...this.state.checked, [s.id]: true }).filter(Boolean).length; this.say(coach[Math.min(n - 1, 4)]); } },
+        onAction: (e) => { e && e.stopPropagation(); if (s.kind === 'note') nav('notes'); else this.say(s.kind === 'build' ? 'This would open your notebook.' : 'Checkpoint started — timer running.'); },
+      };
+    });
+    const leftMin = D.steps.filter(s => !(this.state.checked[s.id] ?? s.done)).reduce((a, s) => a + s.min, 0);
+    const h = Math.floor(leftMin / 60), mm = leftMin % 60;
+    const t = this.state.tLeft, tl = `${String(Math.floor(t / 60)).padStart(2, '0')}:${String(t % 60).padStart(2, '0')}`;
+    return {
+      ...base, why: D.week.why, remember: D.week.remember,
+      dateLabel: new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }),
+      leftShort: leftMin ? `About ${h ? h + 'h ' : ''}${mm}m queued.` : 'Queue clear.',
+      leftLabel: `${steps.filter(s => !s.done).length} steps · ~${h ? h + 'h ' : ''}${mm}m if you start now`,
+      steps, segStyle,
+      speeds: ['1×', '1.25×', '1.5×'].map(v => ({
+        v, onSet: (e) => { e && e.stopPropagation(); this.setState({ speed: v }); },
+        style: { font: 'inherit', fontSize: '12px', padding: '4px 9px', borderRadius: '7px', cursor: 'pointer', background: 'transparent', border: '1px solid var(--color-divider)', color: 'inherit', ...(this.state.speed === v ? { color: 'var(--color-accent)', boxShadow: 'inset 0 0 0 1px var(--color-accent)', borderColor: 'var(--color-accent)' } : {}) },
+      })),
+      markConfusing: (e) => { e && e.stopPropagation(); this.say('Marked 6:42 — dropped into your week 9 note.'); },
+      openVideo: (e) => { e && e.stopPropagation(); nav('video'); },
+      openLibrary: (e) => { e && e.stopPropagation(); nav('library'); },
+      meterStyle: { display: 'block', height: '100%', width: '53%', background: 'var(--color-accent)', borderRadius: '2px' },
+      meterStyleLg: { display: 'block', height: '100%', width: '53%', background: 'var(--color-accent)', borderRadius: '3px' },
+      recent: (this.state.recent || []).map(r => ({ ...r, onUndo: () => { this.setState({ recent: this.state.recent.filter(x => x.id !== r.id) }); this.say('Sent back to the queue.'); } })),
+      tLabel: tl, tBtn: this.state.tRun ? 'Pause' : 'Start focus',
+      tToggle: () => { if (this.state.tRun) { clearInterval(this._iv); this.setState({ tRun: false }); } else { this._iv = setInterval(() => { if (this.state.tLeft <= 1) { clearInterval(this._iv); this.setState({ tLeft: 0, tRun: false }); this.say('Session done. Stretch — break timer starts now.'); } else this.setState({ tLeft: this.state.tLeft - 1 }); }, 1000); this.setState({ tRun: true }); } },
+      tReset: () => { clearInterval(this._iv); this.setState({ tLeft: 1500, tRun: false }); },
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="stylesheet" href="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/styles.css">
+  <link rel="stylesheet" href="theme-light.css">
+  <script src="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/_ds_bundle.js"></script>
+  <style>
+    a{color:var(--color-accent)} a:hover{color:var(--color-accent-400)}
+    @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="min-height:100vh;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);padding:40px 44px 80px">
+  <div style="display:flex;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-bottom:36px;max-width:1240px">
+    <div style="flex:1;min-width:280px">
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent);margin-bottom:6px">Study OS · all 10 screens · desktop + 390px</div>
+      <h2 style="margin:0;font-size:30px">The complete system, side by side.</h2>
+      <p class="text-muted" style="margin:6px 0 0;font-size:13.5px;max-width:64ch">Every screen below is live — click through states here, or open <a href="Study OS.dc.html">Study OS.dc.html</a> for the fully clickable app with navigation, drawer and theme toggle. Flip the whole sheet to light mode →</p>
+    </div>
+    <span style="display:inline-flex;gap:5px">
+      <button onClick="{{ setDark }}" style="{{ darkBtn }}">Dark</button>
+      <button onClick="{{ setLight }}" style="{{ lightBtn }}">Light</button>
+    </span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:56px">
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px"><span class="tag tag-accent">01</span><h5 style="margin:0">Today — the money screen</h5><span class="text-muted" style="font-size:12px">step queue with inline video + reader expansion, timer, meters</span></div>
+      <div style="display:flex;gap:28px;align-items:flex-start">
+        <div style="width:1240px;flex:none;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="Today" theme="{{ theme }}" viewport="desktop" hint-size="1240px,900px"></dc-import></div>
+        <div style="width:390px;flex:none;border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="MobileChrome" theme="{{ theme }}" hint-size="390px,54px"></dc-import><dc-import name="Today" theme="{{ theme }}" viewport="mobile" hint-size="390px,1300px"></dc-import></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px"><span class="tag tag-accent">02</span><h5 style="margin:0">Video lesson</h5><span class="text-muted" style="font-size:12px">watched-segments bar, speed, confusing markers → weekly note</span></div>
+      <div style="display:flex;gap:28px;align-items:flex-start">
+        <div style="width:1240px;flex:none;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="VideoLesson" theme="{{ theme }}" viewport="desktop" hint-size="1240px,760px"></dc-import></div>
+        <div style="width:390px;flex:none;border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="MobileChrome" theme="{{ theme }}" hint-size="390px,54px"></dc-import><dc-import name="VideoLesson" theme="{{ theme }}" viewport="mobile" hint-size="390px,1100px"></dc-import></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px"><span class="tag tag-accent">03</span><h5 style="margin:0">Library</h5><span class="text-muted" style="font-size:12px">bookshelf + papers; click an in-app book or paper for the reading view</span></div>
+      <div style="display:flex;gap:28px;align-items:flex-start">
+        <div style="width:1240px;flex:none;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="Library" theme="{{ theme }}" viewport="desktop" hint-size="1240px,820px"></dc-import></div>
+        <div style="width:390px;flex:none;border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="MobileChrome" theme="{{ theme }}" hint-size="390px,54px"></dc-import><dc-import name="Library" theme="{{ theme }}" viewport="mobile" hint-size="390px,1200px"></dc-import></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px"><span class="tag tag-accent">04</span><h5 style="margin:0">Notes</h5><span class="text-muted" style="font-size:12px">rich editor, slash menu, markdown toggle, history drawer, publish to GitHub, observer's record</span></div>
+      <div style="display:flex;gap:28px;align-items:flex-start">
+        <div style="width:1240px;flex:none;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="Notes" theme="{{ theme }}" viewport="desktop" hint-size="1240px,980px"></dc-import></div>
+        <div style="width:390px;flex:none;border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="MobileChrome" theme="{{ theme }}" hint-size="390px,54px"></dc-import><dc-import name="Notes" theme="{{ theme }}" viewport="mobile" hint-size="390px,1500px"></dc-import></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px"><span class="tag tag-accent">05</span><h5 style="margin:0">Plan</h5><span class="text-muted" style="font-size:12px">phase accordion → weeks, recap weeks, papers flagged, current week open</span></div>
+      <div style="display:flex;gap:28px;align-items:flex-start">
+        <div style="width:1240px;flex:none;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="Plan" theme="{{ theme }}" viewport="desktop" hint-size="1240px,980px"></dc-import></div>
+        <div style="width:390px;flex:none;border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="MobileChrome" theme="{{ theme }}" hint-size="390px,54px"></dc-import><dc-import name="Plan" theme="{{ theme }}" viewport="mobile" hint-size="390px,1300px"></dc-import></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px"><span class="tag tag-accent">06</span><h5 style="margin:0">Board</h5><span class="text-muted" style="font-size:12px">live leaderboard (rows tick every few seconds), group pulse strip</span></div>
+      <div style="display:flex;gap:28px;align-items:flex-start">
+        <div style="width:1240px;flex:none;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="Board" theme="{{ theme }}" viewport="desktop" hint-size="1240px,700px"></dc-import></div>
+        <div style="width:390px;flex:none;border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="MobileChrome" theme="{{ theme }}" hint-size="390px,54px"></dc-import><dc-import name="Board" theme="{{ theme }}" viewport="mobile" hint-size="390px,950px"></dc-import></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px"><span class="tag tag-accent">07</span><h5 style="margin:0">Profile &amp; badges</h5><span class="text-muted" style="font-size:12px">stats, contribution heatmap, badge gallery with locked states</span></div>
+      <div style="display:flex;gap:28px;align-items:flex-start">
+        <div style="width:1240px;flex:none;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="Profile" theme="{{ theme }}" viewport="desktop" hint-size="1240px,900px"></dc-import></div>
+        <div style="width:390px;flex:none;border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="MobileChrome" theme="{{ theme }}" hint-size="390px,54px"></dc-import><dc-import name="Profile" theme="{{ theme }}" viewport="mobile" hint-size="390px,1400px"></dc-import></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px"><span class="tag tag-accent">08</span><h5 style="margin:0">Settings</h5><span class="text-muted" style="font-size:12px">schedule, notifications with ntfy guide, GitHub connection, danger zone</span></div>
+      <div style="display:flex;gap:28px;align-items:flex-start">
+        <div style="width:1240px;flex:none;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="Settings" theme="{{ theme }}" viewport="desktop" hint-size="1240px,980px"></dc-import></div>
+        <div style="width:390px;flex:none;border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="MobileChrome" theme="{{ theme }}" hint-size="390px,54px"></dc-import><dc-import name="Settings" theme="{{ theme }}" viewport="mobile" hint-size="390px,1300px"></dc-import></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px"><span class="tag tag-accent">09</span><h5 style="margin:0">Admin</h5><span class="text-muted" style="font-size:12px">approval queue, member table with revoke reasons, invite codes, curriculum editor, analytics</span></div>
+      <div style="display:flex;gap:28px;align-items:flex-start">
+        <div style="width:1240px;flex:none;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="Admin" theme="{{ theme }}" viewport="desktop" hint-size="1240px,1100px"></dc-import></div>
+        <div style="width:390px;flex:none;border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="MobileChrome" theme="{{ theme }}" hint-size="390px,54px"></dc-import><dc-import name="Admin" theme="{{ theme }}" viewport="mobile" hint-size="390px,1800px"></dc-import></div>
+      </div>
+    </div>
+    <div>
+      <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:14px"><span class="tag tag-accent">10</span><h5 style="margin:0">Auth &amp; onboarding</h5><span class="text-muted" style="font-size:12px">sign in / sign up / verify / forgot; the 4-card tour plays after sign-in</span></div>
+      <div style="display:flex;gap:28px;align-items:flex-start">
+        <div style="width:1240px;flex:none;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="Auth" theme="{{ theme }}" viewport="desktop" hint-size="1240px,660px"></dc-import></div>
+        <div style="width:390px;flex:none;border-radius:20px;overflow:hidden;box-shadow:var(--shadow-md)"><dc-import name="Auth" theme="{{ theme }}" viewport="mobile" hint-size="390px,1000px"></dc-import></div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { theme: 'dark' };
+  renderVals() {
+    const btn = (on) => ({ font: 'inherit', fontSize: '13px', padding: '6px 16px', borderRadius: '8px', cursor: 'pointer', background: 'transparent', border: '1px solid var(--color-divider)', color: 'inherit', ...(on ? { color: 'var(--color-accent)', borderColor: 'var(--color-accent)', boxShadow: 'inset 0 0 0 1px var(--color-accent)' } : {}) });
+    return {
+      theme: this.state.theme,
+      setDark: () => this.setState({ theme: 'dark' }), setLight: () => this.setState({ theme: 'light' }),
+      darkBtn: btn(this.state.theme === 'dark'), lightBtn: btn(this.state.theme === 'light'),
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/styles.css">
+  <link rel="stylesheet" href="theme-light.css">
+  <script src="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/_ds_bundle.js"></script>
+  <style>
+    a{color:var(--color-accent)} a:hover{color:var(--color-accent-400)}
+    @keyframes fade-up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+  </style>
+</helmet>
+<div data-screen-label="Admin" data-theme="{{ theme }}" style="container-type:inline-size;min-height:100%;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body)">
+<sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
+<div style="max-width:1080px;margin:0 auto;padding:clamp(16px,3cqw,36px);display:flex;flex-direction:column;gap:22px">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.5V11c0 4.5-2.8 7.6-7 9.5-4.2-1.9-7-5-7-9.5V5.5zM9 11.8l2.1 2.1 3.9-3.9"></path></svg>
+        <span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent)">Admin · owner only</span>
+      </div>
+      <h2 style="font-size:clamp(24px,3.2cqw,32px);margin:0">The group, from above.</h2>
+    </div>
+    <span class="tag tag-neutral" style="white-space:nowrap">7 members · 2 pending · cap 50</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px">
+    <div class="card elev-sm" style="padding:16px;gap:6px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><div class="card-kicker">Daily actives</div><span class="text-muted" style="font-size:11px">14 days</span></div>
+      <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:var(--font-heading);font-size:26px">7</span><span style="font-size:11px;color:var(--color-accent-300)">all of us, today</span></div>
+      <svg viewBox="0 0 200 56" preserveAspectRatio="none" style="width:100%;height:56px;display:block">
+        <polyline points="{{ dauPts }}" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></polyline>
+        <polygon points="{{ dauFill }}" fill="color-mix(in srgb, var(--color-accent) 12%, transparent)"></polygon>
+      </svg>
+    </div>
+    <div class="card elev-sm" style="padding:16px;gap:6px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><div class="card-kicker">Watch hours</div><span class="text-muted" style="font-size:11px">weekly</span></div>
+      <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:var(--font-heading);font-size:26px">11.2</span><span style="font-size:11px;color:var(--color-accent-300)">+17% wk over wk</span></div>
+      <svg viewBox="0 0 200 56" style="width:100%;height:56px;display:block">
+        <sc-for list="{{ watchBars }}" as="b" hint-placeholder-count="8">
+          <rect x="{{ b.x }}" y="{{ b.y }}" width="18" height="{{ b.h }}" rx="2.5" fill="{{ b.f }}"></rect>
+        </sc-for>
+      </svg>
+    </div>
+    <div class="card elev-sm" style="padding:16px;gap:6px">
+      <div style="display:flex;justify-content:space-between;align-items:baseline"><div class="card-kicker">Step velocity</div><span class="text-muted" style="font-size:11px">group steps / wk</span></div>
+      <div style="display:flex;align-items:baseline;gap:6px"><span style="font-family:var(--font-heading);font-size:26px">81</span><span style="font-size:11px;color:var(--color-accent-300)">record week</span></div>
+      <svg viewBox="0 0 200 56" style="width:100%;height:56px;display:block">
+        <sc-for list="{{ veloBars }}" as="b" hint-placeholder-count="8">
+          <rect x="{{ b.x }}" y="{{ b.y }}" width="18" height="{{ b.h }}" rx="2.5" fill="{{ b.f }}"></rect>
+        </sc-for>
+      </svg>
+    </div>
+  </div>
+  <div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:10px">
+      <h6 style="margin:0;color:var(--color-neutral-400)">Approval queue</h6>
+      <span class="text-muted" style="font-size:12px">invite code STUDY-7F2K · 5 of 10 used</span>
+    </div>
+    <sc-if value="{{ hasPending }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ pending }}" as="pd" hint-placeholder-count="2">
+          <div class="card elev-sm" style="padding:13px 16px;flex-direction:row;align-items:center;gap:12px;flex-wrap:wrap">
+            <span style="width:32px;height:32px;border-radius:50%;background:var(--color-neutral-800);color:var(--color-neutral-200);display:grid;place-items:center;font-size:11px;flex:none">{{ pd.ini }}</span>
+            <div style="flex:1;min-width:170px">
+              <div style="font-size:13.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">{{ pd.name }}
+                <sc-if value="{{ pd.verified }}" hint-placeholder-val="{{ true }}">
+                  <span class="tag tag-accent" style="display:inline-flex;gap:4px;align-items:center;white-space:nowrap">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>
+                    email verified</span>
+                </sc-if>
+                <sc-if value="{{ pd.unverified }}" hint-placeholder-val="{{ false }}">
+                  <span class="tag tag-neutral" style="white-space:nowrap">unverified</span>
+                </sc-if>
+              </div>
+              <div class="text-muted" style="font-size:11.5px;margin-top:2px">{{ pd.email }} · applied {{ pd.ago }} · code {{ pd.code }}</div>
+            </div>
+            <button class="btn btn-primary" onClick="{{ pd.onApprove }}" style="font-size:12.5px">Approve</button>
+            <button class="btn btn-ghost" onClick="{{ pd.onDecline }}" style="font-size:12.5px">Decline</button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+    <sc-if value="{{ noPending }}" hint-placeholder-val="{{ false }}">
+      <div class="card" style="padding:16px;align-items:center;flex-direction:row;gap:10px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"></path></svg>
+        <span class="text-muted" style="font-size:13px">Queue clear.</span>
+      </div>
+    </sc-if>
+  </div>
+  <div>
+    <h6 style="margin:0 0 10px;color:var(--color-neutral-400)">Members</h6>
+    <div style="overflow-x:auto">
+      <table class="table" style="min-width:660px">
+        <thead><tr><th>Member</th><th>Status</th><th>Last active</th><th>Watch hrs</th><th style="width:210px">Actions</th></tr></thead>
+        <tbody>
+          <sc-for list="{{ members }}" as="m" hint-placeholder-count="7">
+            <tr>
+              <td><div style="display:flex;flex-direction:column"><span style="font-size:13.5px;white-space:nowrap">{{ m.name }}</span><span class="text-muted" style="font-size:11px">{{ m.email }}</span></div></td>
+              <td><span class="{{ m.tagClass }}" style="white-space:nowrap">{{ m.status }}</span></td>
+              <td class="text-muted" style="white-space:nowrap">{{ m.active }}</td>
+              <td style="font-variant-numeric:tabular-nums">{{ m.watchH }}</td>
+              <td>
+                <sc-if value="{{ m.actionable }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;gap:6px;align-items:center">
+                    <select class="input" onChange="{{ m.onRevoke }}" style="min-height:30px;padding:3px 8px;font-size:12px;width:130px">
+                      <option>Revoke…</option><option>Inactivity</option><option>Code abuse</option><option>Member request</option>
+                    </select>
+                    <button class="btn btn-icon btn-ghost" onClick="{{ m.onDelete }}" aria-label="Delete member" style="width:28px;height:28px;color:oklch(0.72 0.1 25)">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h14M9 7V5h6v2M8 7l1 13h6l1-13M12 10.5v6"></path></svg>
+                    </button>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ m.isOwner }}" hint-placeholder-val="{{ false }}">
+                  <span class="text-muted" style="font-size:11.5px">that's you</span>
+                </sc-if>
+              </td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start">
+    <div style="flex:1 1 280px;min-width:0">
+      <h6 style="margin:0 0 10px;color:var(--color-neutral-400)">Invite codes</h6>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <sc-for list="{{ invites }}" as="iv" hint-placeholder-count="2">
+          <div class="card elev-sm" style="padding:13px 16px;gap:8px">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <code style="font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:var(--color-neutral-900);border-radius:7px;padding:4px 9px">{{ iv.code }}</code>
+              <span class="text-muted" style="font-size:11.5px;flex:1">{{ iv.note }}</span>
+              <span class="text-muted" style="font-size:11.5px;font-variant-numeric:tabular-nums;white-space:nowrap">{{ iv.used }} / {{ iv.cap }}</span>
+            </div>
+            <span style="height:4px;border-radius:2px;background:var(--color-neutral-800);overflow:hidden;display:block"><span style="{{ iv.barStyle }}"></span></span>
+          </div>
+        </sc-for>
+        <button class="btn btn-secondary" style="align-self:flex-start;font-size:12.5px">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+          New code</button>
+      </div>
+    </div>
+    <div style="flex:1.6 1 340px;min-width:0">
+      <h6 style="margin:0 0 10px;color:var(--color-neutral-400)">Curriculum editor</h6>
+      <div class="card elev-sm" style="padding:16px;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <button class="btn btn-icon btn-secondary" style="width:28px;height:28px" aria-label="Previous week"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 6-6 6 6 6"></path></svg></button>
+          <div style="flex:1;text-align:center;font-family:var(--font-heading);font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Week 9 · Eigenvectors &amp; eigenvalues</div>
+          <button class="btn btn-icon btn-secondary" style="width:28px;height:28px" aria-label="Next week"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9.5 6 6 6-6 6"></path></svg></button>
+        </div>
+        <div class="field">
+          <label>Week guidance</label>
+          <textarea class="input" style="min-height:64px;font-size:13px" defaultValue="{{ guideText }}"></textarea>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <sc-for list="{{ edSteps }}" as="es" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:8px">
+              <svg style="flex:none;color:var(--color-neutral-600);cursor:grab" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6h.01M9 12h.01M9 18h.01M15 6h.01M15 12h.01M15 18h.01"></path></svg>
+              <span style="width:24px;height:24px;flex:none;border-radius:7px;background:var(--color-accent-900);color:var(--color-accent-300);display:grid;place-items:center">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="{{ es.iconD }}"></path></svg></span>
+              <input class="input" defaultValue="{{ es.title }}" style="min-height:30px;padding:4px 9px;font-size:12.5px;flex:1">
+              <input class="input" defaultValue="{{ es.min }}" style="min-height:30px;padding:4px 6px;font-size:12.5px;width:44px;text-align:center">
+              <button class="btn btn-icon btn-ghost" onClick="{{ es.onRemove }}" aria-label="Remove step" style="width:26px;height:26px;opacity:.7">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"></path></svg></button>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-ghost" onClick="{{ addStep }}" style="font-size:12.5px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+            Add step</button>
+          <span style="flex:1"></span>
+          <button class="btn btn-primary" onClick="{{ saveWeek }}" style="font-size:12.5px">Save week 9</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</sc-if>
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:60;background:var(--color-surface);box-shadow:var(--shadow-md);border-radius:10px;padding:10px 16px;font-size:13.5px;display:flex;gap:8px;align-items:center;animation:fade-up .25s ease;white-space:nowrap">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 2.5V11c0 4.5-2.8 7.6-7 9.5-4.2-1.9-7-5-7-9.5V5.5zM9 11.8l2.1 2.1 3.9-3.9"></path></svg>
+    {{ toast }}
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1180,&quot;height&quot;:1000},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;viewport&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onNavigate&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(route: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { d: null, I: null, pending: null, edSteps: null, toast: null };
+  componentDidMount() {
+    Promise.all([import('./data.js'), import('./icons.js')]).then(([m, i]) => this.setState({
+      d: m.DATA, I: i.ICON, pending: m.DATA.admin.pending.slice(),
+      edSteps: m.DATA.steps.map(s => ({ kind: s.kind, title: s.title, min: s.min })),
+    }));
+  }
+  componentWillUnmount() { clearTimeout(this._tt); }
+  say(msg) { clearTimeout(this._tt); this.setState({ toast: msg }); this._tt = setTimeout(() => this.setState({ toast: null }), 3400); }
+  renderVals() {
+    const D = this.state.d, I = this.state.I;
+    const base = { ready: !!D, theme: this.props.theme ?? 'dark', toast: this.state.toast, hasToast: !!this.state.toast };
+    if (!D) return base;
+    const A = D.admin;
+    const dauPts = A.dau.map((v, i) => `${(i / (A.dau.length - 1) * 196 + 2).toFixed(1)},${(52 - v / 7 * 44).toFixed(1)}`).join(' ');
+    const bars = (arr, max) => arr.map((v, i) => ({ x: String(i * 25 + 2), y: (52 - v / max * 46).toFixed(1), h: (v / max * 46 + 2).toFixed(1), f: i === arr.length - 1 ? 'var(--color-accent)' : 'var(--color-accent-800)' }));
+    return {
+      ...base,
+      dauPts, dauFill: `2,54 ${dauPts} 198,54`,
+      watchBars: bars(A.watchWk, 12), veloBars: bars(A.velocity, 85),
+      hasPending: (this.state.pending || []).length > 0, noPending: (this.state.pending || []).length === 0,
+      pending: (this.state.pending || []).map(pd => ({
+        ...pd, ini: pd.name.split(' ').map(w => w[0]).join(''), unverified: !pd.verified,
+        onApprove: () => { this.setState({ pending: this.state.pending.filter(x => x.id !== pd.id) }); this.say(`${pd.name.split(' ')[0]} approved — welcome email sent.`); },
+        onDecline: () => { this.setState({ pending: this.state.pending.filter(x => x.id !== pd.id) }); this.say('Declined quietly. The code use was refunded.'); },
+      })),
+      members: A.members.map(m => ({
+        ...m, isOwner: m.status === 'owner', actionable: m.status !== 'owner',
+        tagClass: m.status === 'owner' ? 'tag tag-accent' : m.status.startsWith('idle') ? 'tag tag-neutral' : 'tag tag-outline',
+        onRevoke: (e) => { const v = e.target.value; if (v && v !== 'Revoke…') { this.say(`${m.name} revoked — reason logged: ${v.toLowerCase()}.`); e.target.value = 'Revoke…'; } },
+        onDelete: () => this.say('Hold to confirm in the real app. Nothing deleted here.'),
+      })),
+      invites: A.invites.map(iv => ({ ...iv, barStyle: { display: 'block', height: '100%', width: (iv.used / iv.cap * 100) + '%', background: 'var(--color-accent)' } })),
+      guideText: 'The payoff week. Everything before was setup; everything after leans on this.',
+      edSteps: (this.state.edSteps || []).map((es, i) => ({
+        ...es, iconD: I[es.kind],
+        onRemove: () => this.setState({ edSteps: this.state.edSteps.filter((_, j) => j !== i) }),
+      })),
+      addStep: () => this.setState({ edSteps: [...this.state.edSteps, { kind: 'note', title: 'New step — describe it', min: 10 }] }),
+      saveWeek: () => this.say('Week 9 saved — 7 members see it on next refresh.'),
+    };
+  }
+}
+</script>
+</body>
+</html>

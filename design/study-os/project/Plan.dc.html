@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/styles.css">
+  <link rel="stylesheet" href="theme-light.css">
+  <script src="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/_ds_bundle.js"></script>
+  <style>
+    a{color:var(--color-accent)} a:hover{color:var(--color-accent-400)}
+    @keyframes fade-up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+  </style>
+</helmet>
+<div data-screen-label="Plan" data-theme="{{ theme }}" style="container-type:inline-size;min-height:100%;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body)">
+<sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
+<div style="max-width:920px;margin:0 auto;padding:clamp(16px,3cqw,36px)">
+  <div style="margin-bottom:8px">
+    <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent);margin-bottom:6px">The plan</div>
+    <h2 style="font-size:clamp(24px,3.2cqw,32px);margin:0">77 weeks, first principles up.</h2>
+    <div class="text-muted" style="font-size:13.5px;margin-top:5px">Seven phases. Recap weeks are built in — they count.</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;margin:18px 0 22px;flex-wrap:wrap">
+    <span style="flex:1;min-width:180px;height:6px;border-radius:3px;background:var(--color-neutral-800);overflow:hidden"><span style="{{ totalBar }}"></span></span>
+    <span class="text-muted" style="font-size:12.5px;white-space:nowrap">Week 9 of 77 · 11% · 118h logged</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <sc-for list="{{ phases }}" as="ph" hint-placeholder-count="7">
+      <div style="background:var(--color-surface);border-radius:12px;box-shadow:var(--shadow-sm);overflow:hidden">
+        <div onClick="{{ ph.onToggle }}" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;flex-wrap:wrap" style-hover="background:color-mix(in srgb,var(--color-text) 3%,transparent)">
+          <span style="{{ ph.numStyle }}">{{ ph.n }}</span>
+          <div style="flex:1;min-width:150px">
+            <div style="font-family:var(--font-heading);font-size:15px">{{ ph.name }}</div>
+            <div class="text-muted" style="font-size:11.5px;margin-top:1px">Weeks {{ ph.range }} · ~{{ ph.hrs }}h</div>
+          </div>
+          <span style="width:90px;height:4px;border-radius:2px;background:var(--color-neutral-800);overflow:hidden;flex:none"><span style="{{ ph.barStyle }}"></span></span>
+          <span class="tag tag-neutral" style="flex:none;font-variant-numeric:tabular-nums;white-space:nowrap">{{ ph.pct }}%</span>
+          <svg style="{{ ph.chevStyle }}" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-neutral-500)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9.5 6 6 6-6"></path></svg>
+        </div>
+        <sc-if value="{{ ph.open }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:2px 12px 12px;display:flex;flex-direction:column;gap:2px;animation:fade-up .2s ease">
+            <sc-for list="{{ ph.weeks }}" as="wk" hint-placeholder-count="8">
+              <div>
+                <div onClick="{{ wk.onToggle }}" style="{{ wk.rowStyle }}" style-hover="background:color-mix(in srgb,var(--color-text) 4%,transparent)">
+                  <span class="text-muted" style="width:32px;flex:none;font-size:11.5px;font-variant-numeric:tabular-nums">{{ wk.wLabel }}</span>
+                  <span style="flex:1;min-width:140px;font-size:13.5px;line-height:1.35">{{ wk.t }}</span>
+                  <sc-if value="{{ wk.recap }}" hint-placeholder-val="{{ false }}">
+                    <span class="tag tag-neutral" style="display:inline-flex;gap:5px;align-items:center;flex:none;white-space:nowrap">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3.5 20 6.5l-3 3M20 6.5H8a4 4 0 0 0-4 4V12M7 20.5l-3-3 3-3M4 17.5h12a4 4 0 0 0 4-4V12"></path></svg>
+                      recap</span>
+                  </sc-if>
+                  <sc-if value="{{ wk.hasPapers }}" hint-placeholder-val="{{ false }}">
+                    <span class="tag tag-outline" style="flex:none;white-space:nowrap">{{ wk.paperLabel }}</span>
+                  </sc-if>
+                  <sc-if value="{{ wk.now }}" hint-placeholder-val="{{ false }}">
+                    <span class="tag tag-accent" style="flex:none">now</span>
+                  </sc-if>
+                  <span class="text-muted" style="flex:none;font-size:11.5px;white-space:nowrap">{{ wk.h }}h</span>
+                </div>
+                <sc-if value="{{ wk.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin:4px 6px 10px 38px;border-radius:10px;background:var(--color-bg);padding:14px 16px;display:flex;flex-direction:column;gap:10px;animation:fade-up .2s ease">
+                    <p class="text-muted" style="margin:0;font-size:12.5px;line-height:1.55"><span style="color:var(--color-accent-300)">Guidance — </span>{{ wk.guide }}</p>
+                    <sc-if value="{{ wk.hasSteps }}" hint-placeholder-val="{{ false }}">
+                      <div style="display:flex;flex-direction:column;gap:6px">
+                        <sc-for list="{{ wk.stepList }}" as="ws" hint-placeholder-count="5">
+                          <div style="display:flex;gap:8px;align-items:baseline;font-size:12.5px">
+                            <span style="color:var(--color-accent);flex:none">·</span><span>{{ ws }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </sc-if>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:900},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;viewport&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onNavigate&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(route: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { d: null, openPhase: 1, openWeek: 9 };
+  componentDidMount() { import('./data.js').then(m => this.setState({ d: m.DATA })); }
+  renderVals() {
+    const D = this.state.d;
+    const base = { ready: !!D, theme: this.props.theme ?? 'dark' };
+    if (!D) return base;
+    return {
+      ...base,
+      totalBar: { display: 'block', height: '100%', width: '11%', background: 'var(--color-accent)' },
+      phases: D.phases.map(ph => {
+        const open = this.state.openPhase === ph.n;
+        return {
+          ...ph, open,
+          numStyle: { width: '30px', height: '30px', flex: 'none', borderRadius: '9px', display: 'grid', placeItems: 'center', fontSize: '13px', fontFamily: 'var(--font-heading)', background: ph.pct === 100 ? 'var(--color-accent)' : 'var(--color-accent-900)', color: ph.pct === 100 ? 'var(--color-bg)' : 'var(--color-accent-300)' },
+          barStyle: { display: 'block', height: '100%', width: ph.pct + '%', background: 'var(--color-accent)' },
+          chevStyle: { flex: 'none', transition: 'transform .2s', transform: open ? 'rotate(180deg)' : 'none' },
+          onToggle: () => this.setState({ openPhase: open ? -1 : ph.n }),
+          weeks: ph.weeks.map(wk => {
+            const wOpen = this.state.openWeek === wk.w;
+            return {
+              ...wk, open: wOpen, wLabel: 'W' + String(wk.w).padStart(2, '0'),
+              now: !!wk.now, recap: !!wk.recap, hasPapers: !!wk.papers,
+              paperLabel: wk.papers ? (wk.papers.length > 1 ? wk.papers.length + ' papers' : 'paper') : '',
+              guide: wk.guide || (wk.w < 9 ? 'Done — notes and checkpoint archived.' : wk.recap ? 'Consolidation week: redo the two shakiest checkpoints, no new material.' : 'Guidance unlocks when the week starts. Steps are drafted and time-boxed.'),
+              hasSteps: !!wk.steps, stepList: wk.steps || [],
+              rowStyle: { display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '9px', cursor: 'pointer', flexWrap: 'wrap', ...(wk.now ? { background: 'color-mix(in srgb, var(--color-accent) 8%, transparent)' } : {}), ...(wk.recap ? { opacity: .92 } : {}) },
+              onToggle: () => this.setState({ openWeek: wOpen ? -1 : wk.w }),
+            };
+          }),
+        };
+      }),
+    };
+  }
+}
+</script>
+</body>
+</html>

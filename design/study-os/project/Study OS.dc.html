@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/styles.css">
+  <link rel="stylesheet" href="theme-light.css">
+  <script src="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/_ds_bundle.js"></script>
+  <style>
+    a{color:var(--color-accent)} a:hover{color:var(--color-accent-400)}
+    @keyframes drawer-in{from{transform:translateX(-100%)}to{transform:none}}
+    @keyframes fade-in{from{opacity:0}to{opacity:1}}
+    @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+  </style>
+</helmet>
+<div data-theme="{{ theme }}" style="height:100vh;display:flex;flex-direction:column;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);overflow:hidden">
+  <sc-if value="{{ isAuth }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;overflow-y:auto;min-height:0">
+      <dc-import name="Auth" theme="{{ theme }}" on-navigate="{{ navFn }}" hint-size="100%,680px"></dc-import>
+    </div>
+  </sc-if>
+  <sc-if value="{{ notAuth }}" hint-placeholder-val="{{ true }}">
+    <sc-if value="{{ isMobileVp }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--color-divider);flex:none">
+        <button class="btn btn-icon btn-ghost" onClick="{{ openDrawer }}" aria-label="Menu" style="width:34px;height:34px;color:var(--color-text)">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+        </button>
+        <span style="width:24px;height:24px;border-radius:7px;border:1.5px solid var(--color-accent);display:grid;place-items:center;flex:none">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17h16M7 17a5 5 0 0 1 10 0M12 5v3M5.5 9.5 7 11M18.5 9.5 17 11"></path></svg>
+        </span>
+        <span style="font-family:var(--font-heading);font-size:15px">Study OS</span>
+        <span style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;background:var(--color-accent-900);color:var(--color-accent-200);border-radius:999px;padding:4px 10px;font-size:12px;white-space:nowrap">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-400)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-3.9 0-6.5-2.4-6.5-6 0-2.5 1.6-4.6 3-6.3.6 1 1.4 1.7 2.3 2C10.6 8 11 5.2 13 3c.4 3 1.6 4.5 3 6 1.3 1.4 2.5 3 2.5 6 0 3.6-2.6 6-6.5 6z"></path></svg>
+          23</span>
+      </div>
+    </sc-if>
+    <div style="flex:1;display:flex;min-height:0">
+      <sc-if value="{{ isDesktopVp }}" hint-placeholder-val="{{ true }}">
+        <div style="width:216px;flex:none;display:flex;flex-direction:column;padding:18px 12px 14px;border-right:1px solid var(--color-divider)">
+          <div style="display:flex;align-items:center;gap:10px;padding:0 8px 18px">
+            <span style="width:28px;height:28px;border-radius:8px;border:1.5px solid var(--color-accent);display:grid;place-items:center;flex:none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17h16M7 17a5 5 0 0 1 10 0M12 5v3M5.5 9.5 7 11M18.5 9.5 17 11"></path></svg>
+            </span>
+            <div>
+              <div style="font-family:var(--font-heading);font-size:15px;line-height:1.1">Study OS</div>
+              <div class="text-muted" style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap">week 9 · phase 1</div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ navItems }}" as="ni" hint-placeholder-count="6">
+              <div onClick="{{ ni.onGo }}" style="{{ ni.style }}" style-hover="background:color-mix(in srgb,var(--color-text) 5%,transparent)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ni.iconD }}"></path></svg>
+                <span style="font-size:13.5px">{{ ni.label }}</span>
+                <sc-if value="{{ ni.owner }}" hint-placeholder-val="{{ false }}">
+                  <span style="margin-left:auto;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-accent-300);border:1px solid var(--color-accent-700);border-radius:5px;padding:1px 5px">owner</span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:2px">
+            <div onClick="{{ toggleTheme }}" style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;color:var(--color-neutral-400)" style-hover="background:color-mix(in srgb,var(--color-text) 5%,transparent)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="{{ themeIconD }}"></path></svg>
+              <span style="font-size:13px;white-space:nowrap">{{ themeLabel }}</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 10px 4px">
+              <span style="width:28px;height:28px;border-radius:50%;background:var(--color-accent-900);color:var(--color-accent-200);display:grid;place-items:center;font-size:10.5px;flex:none">AR</span>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Alex Rivera</div>
+                <div class="text-muted" style="font-size:10.5px">23-day streak</div>
+              </div>
+              <button class="btn btn-icon btn-ghost" onClick="{{ signOut }}" title="Sign out" style="width:28px;height:28px;opacity:.7">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 7V5H5v14h9v-2M10 12h10M17 9l3 3-3 3"></path></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+      <div style="flex:1;overflow-y:auto;min-width:0">
+        <sc-if value="{{ rToday }}" hint-placeholder-val="{{ true }}"><dc-import name="Today" theme="{{ theme }}" viewport="{{ vp }}" on-navigate="{{ navFn }}" hint-size="100%,900px"></dc-import></sc-if>
+        <sc-if value="{{ rVideo }}" hint-placeholder-val="{{ false }}"><dc-import name="VideoLesson" theme="{{ theme }}" viewport="{{ vp }}" on-navigate="{{ navFn }}" hint-size="100%,800px"></dc-import></sc-if>
+        <sc-if value="{{ rLibrary }}" hint-placeholder-val="{{ false }}"><dc-import name="Library" theme="{{ theme }}" viewport="{{ vp }}" on-navigate="{{ navFn }}" hint-size="100%,900px"></dc-import></sc-if>
+        <sc-if value="{{ rNotes }}" hint-placeholder-val="{{ false }}"><dc-import name="Notes" theme="{{ theme }}" viewport="{{ vp }}" on-navigate="{{ navFn }}" hint-size="100%,900px"></dc-import></sc-if>
+        <sc-if value="{{ rPlan }}" hint-placeholder-val="{{ false }}"><dc-import name="Plan" theme="{{ theme }}" viewport="{{ vp }}" on-navigate="{{ navFn }}" hint-size="100%,900px"></dc-import></sc-if>
+        <sc-if value="{{ rBoard }}" hint-placeholder-val="{{ false }}"><dc-import name="Board" theme="{{ theme }}" viewport="{{ vp }}" on-navigate="{{ navFn }}" hint-size="100%,760px"></dc-import></sc-if>
+        <sc-if value="{{ rProfile }}" hint-placeholder-val="{{ false }}"><dc-import name="Profile" theme="{{ theme }}" viewport="{{ vp }}" on-navigate="{{ navFn }}" hint-size="100%,900px"></dc-import></sc-if>
+        <sc-if value="{{ rSettings }}" hint-placeholder-val="{{ false }}"><dc-import name="Settings" theme="{{ theme }}" viewport="{{ vp }}" on-navigate="{{ navFn }}" hint-size="100%,960px"></dc-import></sc-if>
+        <sc-if value="{{ rAdmin }}" hint-placeholder-val="{{ false }}"><dc-import name="Admin" theme="{{ theme }}" viewport="{{ vp }}" on-navigate="{{ navFn }}" hint-size="100%,1000px"></dc-import></sc-if>
+      </div>
+    </div>
+    <sc-if value="{{ drawerOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ closeDrawer }}" style="position:fixed;inset:0;z-index:70;background:color-mix(in srgb,var(--color-neutral-900) 55%,transparent);animation:fade-in .2s ease">
+        <div onClick="{{ eat }}" style="position:absolute;top:0;bottom:0;left:0;width:min(264px,82%);background:var(--color-surface);box-shadow:var(--shadow-lg);padding:18px 12px;display:flex;flex-direction:column;animation:drawer-in .22s ease">
+          <div style="display:flex;align-items:center;gap:10px;padding:0 8px 16px">
+            <span style="width:26px;height:26px;border-radius:8px;border:1.5px solid var(--color-accent);display:grid;place-items:center">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17h16M7 17a5 5 0 0 1 10 0M12 5v3M5.5 9.5 7 11M18.5 9.5 17 11"></path></svg>
+            </span>
+            <span style="font-family:var(--font-heading);font-size:15px;flex:1">Study OS</span>
+            <button class="btn btn-icon btn-ghost" onClick="{{ closeDrawer }}" aria-label="Close menu" style="width:30px;height:30px">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+            </button>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ navItems }}" as="ni" hint-placeholder-count="6">
+              <div onClick="{{ ni.onGo }}" style="{{ ni.style }}" style-hover="background:color-mix(in srgb,var(--color-text) 5%,transparent)">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="{{ ni.iconD }}"></path></svg>
+                <span style="font-size:13.5px">{{ ni.label }}</span>
+                <sc-if value="{{ ni.owner }}" hint-placeholder-val="{{ false }}">
+                  <span style="margin-left:auto;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--color-accent-300);border:1px solid var(--color-accent-700);border-radius:5px;padding:1px 5px">owner</span>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:2px">
+            <div onClick="{{ toggleTheme }}" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;color:var(--color-neutral-400)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="{{ themeIconD }}"></path></svg>
+              <span style="font-size:13px;white-space:nowrap">{{ themeLabel }}</span>
+            </div>
+            <div onClick="{{ signOut }}" style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:9px;cursor:pointer;color:var(--color-neutral-400)">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 7V5H5v14h9v-2M10 12h10M17 9l3 3-3 3"></path></svg>
+              <span style="font-size:13px">Sign out</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;today&quot;,&quot;video&quot;,&quot;library&quot;,&quot;notes&quot;,&quot;plan&quot;,&quot;board&quot;,&quot;profile&quot;,&quot;settings&quot;,&quot;admin&quot;,&quot;auth&quot;],&quot;default&quot;:&quot;today&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Prototype&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Prototype&quot;},&quot;viewport&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;auto&quot;,&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;auto&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Prototype&quot;}}">
+class Component extends DCLogic {
+  state = { route: null, theme: null, drawer: false, I: null };
+  componentDidMount() {
+    import('./icons.js').then(i => this.setState({ I: i.ICON }));
+    this._onR = () => this.forceUpdate();
+    window.addEventListener('resize', this._onR);
+  }
+  componentWillUnmount() { window.removeEventListener('resize', this._onR); }
+  renderVals() {
+    const I = this.state.I || {};
+    const route = this.state.route ?? this.props.screen ?? 'today';
+    const theme = this.state.theme ?? this.props.theme ?? 'dark';
+    const pvp = this.props.viewport;
+    const vp = (pvp && pvp !== 'auto') ? pvp : (typeof window !== 'undefined' && window.innerWidth < 700 ? 'mobile' : 'desktop');
+    const navFn = (r) => this.setState({ route: r, drawer: false });
+    const items = [
+      { id: 'today', label: 'Today', iconD: I.sunrise },
+      { id: 'plan', label: 'Plan', iconD: I.calendar },
+      { id: 'library', label: 'Library', iconD: I.library },
+      { id: 'notes', label: 'Notes', iconD: I.note },
+      { id: 'board', label: 'Board', iconD: I.trophy },
+      { id: 'profile', label: 'Profile', iconD: I.user },
+      { id: 'settings', label: 'Settings', iconD: I.sliders },
+      { id: 'admin', label: 'Admin', iconD: I.shield, owner: true },
+    ];
+    return {
+      theme, vp, navFn,
+      isAuth: route === 'auth', notAuth: route !== 'auth',
+      isMobileVp: vp === 'mobile', isDesktopVp: vp !== 'mobile',
+      rToday: route === 'today', rVideo: route === 'video', rLibrary: route === 'library',
+      rNotes: route === 'notes', rPlan: route === 'plan', rBoard: route === 'board',
+      rProfile: route === 'profile', rSettings: route === 'settings', rAdmin: route === 'admin',
+      navItems: items.map(ni => {
+        const active = route === ni.id || (ni.id === 'today' && route === 'video');
+        return {
+          ...ni, owner: !!ni.owner, onGo: () => navFn(ni.id),
+          style: { display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '9px', cursor: 'pointer', color: active ? 'var(--color-accent)' : 'var(--color-neutral-400)', background: active ? 'color-mix(in srgb, var(--color-accent) 9%, transparent)' : 'transparent' },
+        };
+      }),
+      toggleTheme: () => this.setState({ theme: theme === 'dark' ? 'light' : 'dark' }),
+      themeLabel: theme === 'dark' ? 'Light mode' : 'Dark mode',
+      themeIconD: theme === 'dark' ? I.sun : I.moon,
+      signOut: () => this.setState({ route: 'auth', drawer: false }),
+      drawerOpen: this.state.drawer,
+      openDrawer: () => this.setState({ drawer: true }),
+      closeDrawer: () => this.setState({ drawer: false }),
+      eat: (e) => e && e.stopPropagation(),
+    };
+  }
+}
+</script>
+</body>
+</html>

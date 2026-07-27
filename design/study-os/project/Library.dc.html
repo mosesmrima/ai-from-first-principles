@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/styles.css">
+  <link rel="stylesheet" href="theme-light.css">
+  <script src="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/_ds_bundle.js"></script>
+  <style>
+    a{color:var(--color-accent)} a:hover{color:var(--color-accent-400)}
+    @keyframes fade-up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+  </style>
+</helmet>
+<div data-screen-label="Library" data-theme="{{ theme }}" style="container-type:inline-size;min-height:100%;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body)">
+<sc-if value="{{ ready }}" hint-placeholder-val="{{ true }}">
+<sc-if value="{{ browsing }}" hint-placeholder-val="{{ true }}">
+<div style="max-width:1180px;margin:0 auto;padding:clamp(16px,3cqw,36px)">
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:22px">
+    <div>
+      <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--color-accent);margin-bottom:6px">Library</div>
+      <h2 style="font-size:clamp(24px,3.2cqw,32px);margin:0">Everything is free. All of it is here.</h2>
+      <div class="text-muted" style="font-size:13.5px;margin-top:5px">Seven textbooks and the twelve landmark papers — read in app, progress tracked.</div>
+    </div>
+    <div style="display:inline-flex;gap:5px">
+      <button onClick="{{ tabBooks }}" style="{{ tabBooksStyle }}">Bookshelf</button>
+      <button onClick="{{ tabPapers }}" style="{{ tabPapersStyle }}">Papers</button>
+    </div>
+  </div>
+  <sc-if value="{{ showBooks }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:18px">
+      <sc-for list="{{ books }}" as="b" hint-placeholder-count="7">
+        <div onClick="{{ b.onRead }}" style="display:flex;flex-direction:column;gap:9px;cursor:pointer" style-hover="transform:translateY(-2px)">
+          <div style="{{ b.coverStyle }}">
+            <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;opacity:.65">{{ b.pub }}</div>
+            <div style="font-family:Georgia,'Times New Roman',serif;font-size:15px;line-height:1.25;margin-top:auto">{{ b.title }}</div>
+            <div style="font-size:10px;opacity:.7;margin-top:6px">{{ b.authors }}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="tag tag-accent" style="white-space:nowrap">Phase {{ b.phase }}</span>
+            <span class="text-muted" style="font-size:11px;white-space:nowrap">{{ b.where }}</span>
+          </div>
+          <sc-if value="{{ b.hasPct }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="flex:1;height:4px;border-radius:2px;background:var(--color-neutral-800);overflow:hidden"><span style="{{ b.barStyle }}"></span></span>
+              <span class="text-muted" style="font-size:11px">{{ b.pct }}%</span>
+            </div>
+          </sc-if>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{ showPapers }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px">
+      <sc-for list="{{ papers }}" as="p" hint-placeholder-count="12">
+        <div class="card elev-sm" onClick="{{ p.onRead }}" style="padding:16px;gap:8px;cursor:pointer" style-hover="box-shadow:var(--shadow-md)">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="tag tag-outline" style="font-variant-numeric:tabular-nums;white-space:nowrap">{{ p.arxiv }}</span>
+            <span style="margin-left:auto"></span>
+            <sc-if value="{{ p.locked }}" hint-placeholder-val="{{ false }}">
+              <span class="tag tag-neutral" style="display:inline-flex;gap:5px;align-items:center;white-space:nowrap">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11V8a5 5 0 0 1 10 0v3M5.5 11h13V20h-13zM12 14.2v2.3"></path></svg>
+                wk {{ p.week }}</span>
+            </sc-if>
+            <sc-if value="{{ p.open }}" hint-placeholder-val="{{ true }}">
+              <span class="tag tag-accent" style="white-space:nowrap">available</span>
+            </sc-if>
+          </div>
+          <div class="card-title" style="font-size:15.5px">{{ p.title }}</div>
+          <div class="card-meta">{{ p.authors }}</div>
+          <div class="card-meta" style="margin-top:auto">{{ p.meta }}</div>
+        </div>
+      </sc-for>
+    </div>
+  </sc-if>
+</div>
+</sc-if>
+<sc-if value="{{ reading }}" hint-placeholder-val="{{ false }}">
+<div style="max-width:900px;margin:0 auto;padding:clamp(12px,2.5cqw,28px)">
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+    <button class="btn btn-ghost" onClick="{{ closeReader }}" style="font-size:12.5px;margin-left:-6px">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6l-6 6 6 6M5 12h14"></path></svg>
+      Library</button>
+    <div style="flex:1;min-width:180px;font-size:13.5px;font-family:var(--font-heading);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ rTitle }}</div>
+    <label class="radio" style="font-size:12px;gap:6px" title="Invert pages for dark rooms">
+      <input type="checkbox" checked="{{ invert }}" onChange="{{ toggleInvert }}">
+      <span class="dot" style="{{ invertDotStyle }}"></span>
+      Page inversion
+    </label>
+    <button class="btn btn-secondary" onClick="{{ marginNote }}" style="font-size:12px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m5 19 .9-3.6L16.6 4.7a2 2 0 0 1 2.8 2.8L8.7 18.1 5 19zM14.8 6.5l2.8 2.8"></path></svg>
+      Margin note → week 9</button>
+  </div>
+  <div style="{{ pageStyle }}">
+    <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;opacity:.55;font-family:var(--font-body)">{{ rKicker }}</div>
+    <h3 style="font-family:inherit;font-weight:500;font-size:clamp(19px,2.6cqw,25px);margin:14px 0 6px">{{ rTitle }}</h3>
+    <div style="font-size:12.5px;opacity:.7;margin-bottom:18px">{{ rAuthors }}</div>
+    <div style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.6;font-family:var(--font-body);margin-bottom:6px">{{ rSectionLabel }}</div>
+    <p style="font-size:14px;line-height:1.75;margin:0 0 12px">{{ rPara1 }}</p>
+    <p style="font-size:14px;line-height:1.75;margin:0 0 16px;opacity:.85">{{ rPara2 }}</p>
+    <div style="{{ eqStyle }}">{{ rEq }}</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px">
+    <button class="btn btn-secondary btn-icon" onClick="{{ prevPage }}" aria-label="Previous page">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m14.5 6-6 6 6 6"></path></svg></button>
+    <button class="btn btn-secondary btn-icon" onClick="{{ nextPage }}" aria-label="Next page">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9.5 6 6 6-6 6"></path></svg></button>
+    <span class="text-muted" style="font-size:12.5px;font-variant-numeric:tabular-nums">{{ rPageLabel }}</span>
+    <span style="flex:1;min-width:120px;height:4px;border-radius:2px;background:var(--color-neutral-800);overflow:hidden"><span style="{{ rBarStyle }}"></span></span>
+    <span class="text-muted" style="font-size:12px">{{ rPct }}% read</span>
+  </div>
+</div>
+</sc-if>
+</sc-if>
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:60;background:var(--color-surface);box-shadow:var(--shadow-md);border-radius:10px;padding:10px 16px;font-size:13.5px;display:flex;gap:8px;align-items:center;animation:fade-up .25s ease;white-space:nowrap">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m5 19 .9-3.6L16.6 4.7a2 2 0 0 1 2.8 2.8L8.7 18.1 5 19zM14.8 6.5l2.8 2.8"></path></svg>
+    {{ toast }}
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;viewport&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onNavigate&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(route: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { d: null, tab: 'books', reading: null, page: 3, invert: true, toast: null };
+  componentDidMount() { import('./data.js').then(m => this.setState({ d: m.DATA })); }
+  componentWillUnmount() { clearTimeout(this._tt); }
+  say(msg) { clearTimeout(this._tt); this.setState({ toast: msg }); this._tt = setTimeout(() => this.setState({ toast: null }), 3400); }
+  renderVals() {
+    const D = this.state.d;
+    const base = { ready: !!D, theme: this.props.theme ?? 'dark', toast: this.state.toast, hasToast: !!this.state.toast };
+    if (!D) return base;
+    const tabStyle = (on) => ({ font: 'inherit', fontSize: '13px', padding: '6px 14px', borderRadius: '8px', cursor: 'pointer', background: 'transparent', border: '1px solid var(--color-divider)', color: 'inherit', whiteSpace: 'nowrap', ...(on ? { color: 'var(--color-accent)', borderColor: 'var(--color-accent)', boxShadow: 'inset 0 0 0 1px var(--color-accent)' } : {}) });
+    const r = this.state.reading;
+    const bodies = {
+      b2: ['Invariant subspaces', 'Suppose T is an operator on V. A subspace U of V is invariant under T when Tu lands back inside U for every u in U — the operator never carries U outside itself.', 'The one-dimensional invariant subspaces are exactly the spans of eigenvectors: T(λv) = λ(Tv) stays on the line through v. This is where Av = λv stops being a formula and becomes geometry.', 'Av = λv,  v ≠ 0'],
+      b1: ['Eigendecomposition', 'A square matrix A is diagonalizable when its eigenvectors span the space: collect them as the columns of P and the map factors into a change of basis, a pure scaling, and the change back.', 'Reading a transformation this way — rotate into the eigenbasis, stretch, rotate back — is the mental move this chapter drills until it is automatic.', 'A = PDP⁻¹'],
+      p1: ['Abstract', 'Introduces the Transformer: a sequence architecture built entirely on attention, with no recurrence and no convolutions, that trains in a fraction of the time of the models it replaces.', 'Scaled dot-product attention lets every position look at every other position at once — the key idea you will spend weeks 48–51 rebuilding from scratch.', 'Attention(Q, K, V) = softmax(QKᵀ / √dₖ) V'],
+    };
+    const body = r ? (bodies[r.id] || ['Abstract', `${r.title} — the pages stream from the ${r.arxiv ? 'arXiv PDF' : 'publisher PDF'} with your position tracked per page.`, 'Margin notes you take here land in the current weekly note, timestamped and linked back to this page.', '§']) : null;
+    const dark = (this.props.theme ?? 'dark') === 'dark';
+    const inverted = this.state.invert && dark;
+    const totalPages = r ? (r.pages || 340) : 1;
+    return {
+      ...base,
+      browsing: !r, reading: !!r,
+      showBooks: this.state.tab === 'books', showPapers: this.state.tab === 'papers',
+      tabBooks: () => this.setState({ tab: 'books' }), tabPapers: () => this.setState({ tab: 'papers' }),
+      tabBooksStyle: tabStyle(this.state.tab === 'books'), tabPapersStyle: tabStyle(this.state.tab === 'papers'),
+      books: D.books.map(b => ({
+        ...b, pub: b.inApp ? 'Free PDF' : 'Publisher', where: b.inApp ? 'Read in app' : 'Opens at publisher',
+        hasPct: b.pct > 0, coverStyle: { aspectRatio: '3/4.1', borderRadius: '8px', padding: '14px', display: 'flex', flexDirection: 'column', color: '#e9e9ed', background: `linear-gradient(155deg, ${b.spine}, color-mix(in srgb, ${b.spine} 55%, #10111c))`, boxShadow: 'var(--shadow-sm)' },
+        barStyle: { display: 'block', height: '100%', width: b.pct + '%', background: 'var(--color-accent)' },
+        onRead: () => { if (b.inApp) this.setState({ reading: b, page: Math.max(2, Math.round(b.pages * b.pct / 100)) }); else this.say('Opens at the publisher in a new tab.'); },
+      })),
+      papers: D.papers.map(p => ({
+        ...p, locked: p.week > 9, open: p.week <= 9,
+        meta: `${p.pages} pages · ~${p.est >= 60 ? Math.floor(p.est / 60) + 'h ' + (p.est % 60 || '') + (p.est % 60 ? 'm' : '') : p.est + 'm'} · unlocks week ${p.week}`,
+        onRead: () => this.setState({ reading: p, page: 1 }),
+      })),
+      closeReader: () => this.setState({ reading: null }),
+      rTitle: r ? r.title : '', rAuthors: r ? r.authors : '',
+      rKicker: r ? (r.arxiv ? `arXiv · ${r.arxiv} · ${r.pages} pp.` : `Free textbook · ${r.pages} pp.`) : '',
+      rSectionLabel: body ? body[0] : '', rPara1: body ? body[1] : '', rPara2: body ? body[2] : '', rEq: body ? body[3] : '',
+      pageStyle: {
+        borderRadius: '12px', padding: 'clamp(22px, 5cqw, 52px)', boxShadow: 'var(--shadow-md)', fontFamily: "Georgia, 'Times New Roman', serif", minHeight: '380px',
+        background: inverted ? 'var(--color-surface)' : '#f5f2ea', color: inverted ? 'var(--color-text)' : '#23242e',
+      },
+      eqStyle: { fontFamily: "'Cambria Math', Georgia, serif", fontSize: '15.5px', textAlign: 'center', padding: '14px', borderRadius: '8px', background: inverted ? 'color-mix(in srgb, var(--color-accent) 8%, transparent)' : 'rgba(40,40,80,.06)' },
+      invert: this.state.invert, toggleInvert: () => this.setState({ invert: !this.state.invert }),
+      invertDotStyle: this.state.invert ? { borderColor: 'var(--color-accent)', background: 'var(--color-accent)', boxShadow: 'inset 0 0 0 4px var(--color-bg)' } : {},
+      prevPage: () => this.setState({ page: Math.max(1, this.state.page - 1) }),
+      nextPage: () => this.setState({ page: Math.min(totalPages, this.state.page + 1) }),
+      rPageLabel: r ? `p. ${this.state.page} of ${totalPages}` : '',
+      rPct: r ? Math.round(this.state.page / totalPages * 100) : 0,
+      rBarStyle: { display: 'block', height: '100%', width: (r ? Math.round(this.state.page / totalPages * 100) : 0) + '%', background: 'var(--color-accent)' },
+      marginNote: () => this.say(`Margin note saved to week 9 · linked to p. ${this.state.page}.`),
+    };
+  }
+}
+</script>
+</body>
+</html>

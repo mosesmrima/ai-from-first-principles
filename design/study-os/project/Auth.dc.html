@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/styles.css">
+  <link rel="stylesheet" href="theme-light.css">
+  <script src="_ds/nocturne-6e2b1963-6db6-42e4-9413-7ff29f3af287/_ds_bundle.js"></script>
+  <style>
+    a{color:var(--color-accent)} a:hover{color:var(--color-accent-400)}
+    @keyframes fade-up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    @media (prefers-reduced-motion: reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+  </style>
+</helmet>
+<div data-screen-label="Auth & onboarding" data-theme="{{ theme }}" style="container-type:inline-size;min-height:100%;background:var(--color-bg);color:var(--color-text);font-family:var(--font-body);display:flex;flex-wrap:wrap">
+  <div style="flex:1 1 300px;min-height:280px;background:radial-gradient(120% 90% at 20% 10%, #353b80, #262a60 60%);color:#e9e9ed;padding:clamp(24px,4cqw,52px);display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="width:30px;height:30px;border-radius:9px;border:1.5px solid #9184d9;display:grid;place-items:center">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#b5abfc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17h16M7 17a5 5 0 0 1 10 0M12 5v3M5.5 9.5 7 11M18.5 9.5 17 11"></path></svg>
+      </span>
+      <span style="font-family:var(--font-heading);font-size:17px;letter-spacing:.01em">Study OS</span>
+    </div>
+    <div style="margin-top:auto">
+      <h1 style="font-size:clamp(26px,3.6cqw,40px);line-height:1.12;margin:0 0 12px;color:#f3f2fb">77 weeks.<br>First principles.<br>5:30 in the morning.</h1>
+      <p style="margin:0;font-size:13.5px;line-height:1.6;opacity:.75;max-width:40ch">A study group's operating system for learning AI from the ground up — video, books, papers, notes and streaks in one calm place.</p>
+    </div>
+    <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:12px;opacity:.8">
+      <span>7 studying now</span><span>41.5h this week</span><span>12 landmark papers</span>
+    </div>
+  </div>
+  <div style="flex:1 1 340px;display:grid;place-items:center;padding:clamp(20px,4cqw,52px)">
+    <div style="width:min(380px,100%);display:flex;flex-direction:column;gap:16px">
+      <sc-if value="{{ isSignin }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:fade-up .25s ease;display:flex;flex-direction:column;gap:14px">
+          <div>
+            <h3 style="margin:0 0 4px">Welcome back.</h3>
+            <p class="text-muted" style="margin:0;font-size:13px">The queue is ready. It's a good morning for eigenvectors.</p>
+          </div>
+          <div class="field"><label>Email</label><input class="input" type="email" placeholder="you@example.com" defaultValue="alex.rivera.ml@gmail.com"></div>
+          <div class="field"><label>Password</label><input class="input" type="password" defaultValue="••••••••••"></div>
+          <button class="btn btn-primary btn-block" onClick="{{ goTour }}">Sign in</button>
+          <div style="display:flex;justify-content:space-between;font-size:12.5px">
+            <a href="#" onClick="{{ goForgot }}">Forgot password?</a>
+            <a href="#" onClick="{{ goSignup }}">New here? Create account</a>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isSignup }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:fade-up .25s ease;display:flex;flex-direction:column;gap:14px">
+          <div>
+            <h3 style="margin:0 0 4px">Join the group.</h3>
+            <p class="text-muted" style="margin:0;font-size:13px">Seven of us so far. Room for fifty.</p>
+          </div>
+          <div class="field"><label>Name</label><input class="input" placeholder="Your name"></div>
+          <div class="field"><label>Email</label><input class="input" type="email" placeholder="you@example.com">
+            <div class="text-muted" style="font-size:11.5px;margin-top:5px;display:flex;gap:6px;align-items:flex-start">
+              <svg style="flex:none;margin-top:1px" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4zM4 7l8 6 8-6"></path></svg>
+              Use a real inbox — a six-digit code lands there in a minute.</div>
+          </div>
+          <div class="field"><label>Password</label><input class="input" type="password" placeholder="10+ characters"></div>
+          <div class="field"><label>Invite code <span style="opacity:.55">· optional</span></label><input class="input" placeholder="STUDY-····" style="font-family:ui-monospace,Menlo,monospace">
+            <div class="text-muted" style="font-size:11.5px;margin-top:5px">A code is a fast-pass: you skip the owner's approval queue and land straight in week 1.</div>
+          </div>
+          <button class="btn btn-primary btn-block" onClick="{{ goVerify }}">Create account</button>
+          <div style="font-size:12.5px;text-align:center"><a href="#" onClick="{{ goSignin }}">Already in? Sign in</a></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isVerify }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:fade-up .25s ease;display:flex;flex-direction:column;gap:14px">
+          <div>
+            <h3 style="margin:0 0 4px">Check your inbox.</h3>
+            <p class="text-muted" style="margin:0;font-size:13px">We emailed <span style="color:var(--color-text)">alex.rivera.ml@gmail.com</span>. Enter the six digits.</p>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:space-between">
+            <input class="input" maxLength="1" defaultValue="4" style="width:46px;height:52px;text-align:center;font-size:20px;font-variant-numeric:tabular-nums">
+            <input class="input" maxLength="1" defaultValue="1" style="width:46px;height:52px;text-align:center;font-size:20px;font-variant-numeric:tabular-nums">
+            <input class="input" maxLength="1" defaultValue="7" style="width:46px;height:52px;text-align:center;font-size:20px;font-variant-numeric:tabular-nums">
+            <input class="input" maxLength="1" style="width:46px;height:52px;text-align:center;font-size:20px">
+            <input class="input" maxLength="1" style="width:46px;height:52px;text-align:center;font-size:20px">
+            <input class="input" maxLength="1" style="width:46px;height:52px;text-align:center;font-size:20px">
+          </div>
+          <button class="btn btn-primary btn-block" onClick="{{ goTour }}">Verify</button>
+          <div style="font-size:12.5px;text-align:center" class="text-muted">Nothing yet? <a href="#" onClick="{{ resend }}">Resend the code</a> · check spam first</div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isForgot }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:fade-up .25s ease;display:flex;flex-direction:column;gap:14px">
+          <div>
+            <h3 style="margin:0 0 4px">It happens at 5:30am.</h3>
+            <p class="text-muted" style="margin:0;font-size:13px">Enter your email and we'll send a reset link.</p>
+          </div>
+          <div class="field"><label>Email</label><input class="input" type="email" placeholder="you@example.com"></div>
+          <button class="btn btn-primary btn-block" onClick="{{ sendReset }}">Send reset link</button>
+          <div style="font-size:12.5px;text-align:center"><a href="#" onClick="{{ goSignin }}">Back to sign in</a></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ isTour }}" hint-placeholder-val="{{ false }}">
+        <div style="animation:fade-up .25s ease;display:flex;flex-direction:column;gap:16px">
+          <div class="card elev-md" style="padding:26px;gap:12px;min-height:250px">
+            <span style="width:38px;height:38px;border-radius:10px;background:var(--color-accent-900);color:var(--color-accent-300);display:grid;place-items:center">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="{{ tourIcon }}"></path></svg>
+            </span>
+            <div class="card-kicker">{{ tourKicker }}</div>
+            <h4 style="margin:0">{{ tourTitle }}</h4>
+            <p class="text-muted" style="margin:0;font-size:13.5px;line-height:1.6">{{ tourBody }}</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="display:inline-flex;gap:5px">
+              <sc-for list="{{ dots }}" as="dt" hint-placeholder-count="4">
+                <span style="{{ dt.style }}"></span>
+              </sc-for>
+            </span>
+            <span style="flex:1"></span>
+            <button class="btn btn-ghost" onClick="{{ finishTour }}" style="font-size:12.5px">Skip tour</button>
+            <button class="btn btn-primary" onClick="{{ nextTour }}" style="font-size:13px">{{ tourNextLabel }}</button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </div>
+<sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
+  <div style="position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:60;background:var(--color-surface);box-shadow:var(--shadow-md);border-radius:10px;padding:10px 16px;font-size:13.5px;display:flex;gap:8px;align-items:center;animation:fade-up .25s ease;white-space:nowrap">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4zM4 7l8 6 8-6"></path></svg>
+    {{ toast }}
+  </div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1100,&quot;height&quot;:680},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dark&quot;,&quot;light&quot;],&quot;default&quot;:&quot;dark&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;viewport&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;mobile&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;onNavigate&quot;:{&quot;editor&quot;:null,&quot;tsType&quot;:&quot;(route: string) =&gt; void&quot;}}">
+class Component extends DCLogic {
+  state = { stage: 'signin', tourIdx: 0, toast: null };
+  componentWillUnmount() { clearTimeout(this._tt); }
+  say(msg) { clearTimeout(this._tt); this.setState({ toast: msg }); this._tt = setTimeout(() => this.setState({ toast: null }), 3400); }
+  renderVals() {
+    const nav = this.props.onNavigate ?? (() => {});
+    const s = this.state.stage;
+    const tour = [
+      { kicker: 'How it works', title: 'One queue, zero decisions.', body: 'Every morning, Today lists your steps in order — watch, read, build, note. Videos play inline and tick themselves off at 90% watched. You just start.', icon: 'M4 17h16M7 17a5 5 0 0 1 10 0M12 5v3M5.5 9.5 7 11M18.5 9.5 17 11' },
+      { kicker: 'Step 2 of 4', title: 'Fork the repo.', body: 'The whole curriculum lives in a public GitHub repo. Fork it once — your notes, checkpoints and capstone all commit there. Your learning becomes a portfolio.', icon: 'M7 4.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 15.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM17 4.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 8.5v7M17 8.5c0 4.5-4 4-7 5.5' },
+      { kicker: 'Step 3 of 4', title: 'Phone reminders, no accounts.', body: 'Install ntfy and subscribe to your private topic — a quiet nudge at 5:15am, and nothing else, ever. Set it up in Settings in two minutes.', icon: 'M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15zM10 20.5a2 2 0 0 0 4 0' },
+      { kicker: 'Step 4 of 4', title: 'Two lines a day.', body: 'After each session, write what you learned, what confused you, what you built. One tap publishes it to GitHub. The AI observer distills your week — clearly marked, never mixed with your words.', icon: 'm5 19 .9-3.6L16.6 4.7a2 2 0 0 1 2.8 2.8L8.7 18.1 5 19zM14.8 6.5l2.8 2.8' },
+    ];
+    const t = tour[this.state.tourIdx];
+    return {
+      theme: this.props.theme ?? 'dark', toast: this.state.toast, hasToast: !!this.state.toast,
+      isSignin: s === 'signin', isSignup: s === 'signup', isVerify: s === 'verify', isForgot: s === 'forgot', isTour: s === 'tour',
+      goSignin: (e) => { e && e.preventDefault(); this.setState({ stage: 'signin' }); },
+      goSignup: (e) => { e && e.preventDefault(); this.setState({ stage: 'signup' }); },
+      goVerify: () => this.setState({ stage: 'verify' }),
+      goForgot: (e) => { e && e.preventDefault(); this.setState({ stage: 'forgot' }); },
+      goTour: () => this.setState({ stage: 'tour', tourIdx: 0 }),
+      resend: (e) => { e && e.preventDefault(); this.say('Sent again — give it a minute.'); },
+      sendReset: () => { this.say('Reset link sent. See you in a minute.'); this.setState({ stage: 'signin' }); },
+      tourKicker: t.kicker, tourTitle: t.title, tourBody: t.body, tourIcon: t.icon,
+      tourNextLabel: this.state.tourIdx === 3 ? 'Start week 9' : 'Next',
+      nextTour: () => { if (this.state.tourIdx === 3) nav('today'); else this.setState({ tourIdx: this.state.tourIdx + 1 }); },
+      finishTour: () => nav('today'),
+      dots: tour.map((_, i) => ({ style: { width: i === this.state.tourIdx ? '18px' : '6px', height: '6px', borderRadius: '3px', display: 'inline-block', transition: 'width .2s', background: i === this.state.tourIdx ? 'var(--color-accent)' : 'var(--color-neutral-700)' } })),
+    };
+  }
+}
+</script>
+</body>
+</html>
