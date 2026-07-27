@@ -45,6 +45,14 @@ Build **Study OS v2** — a full-fledged multi-user AI-learning platform (Next.j
 - **Security**: no hardcoded secrets (env vars only, validated at startup); RLS on every table; parameterized queries; rate limiting on auth endpoints; all input validated with Zod at the boundary.
 - **Testing**: TDD where practical; unit + integration tests; Playwright for the critical flows (sign-up → verify → first step; watch → auto-complete; note → GitHub publish). Target 80% coverage on business logic.
 - **Free resources only** — every external link a learner sees must be free and legal.
+- **Use specialised subagents throughout — don't do everything in the main loop.** Delegate to the installed agents at the right moments, and run independent ones in parallel:
+  - **planner** — at the start of each milestone, turn the milestone into a concrete task breakdown.
+  - **general-purpose / docs-lookup** — the research pass (library APIs via Context7/HeroUI MCP, `gh search` for reference implementations); fan out parallel research agents for independent topics.
+  - **database-reviewer** — review every migration/schema/RLS change before it's applied to Supabase.
+  - **tdd-guide** — drive test-first implementation of business logic (plan queue, watch-interval crediting, lifecycle state machine).
+  - **typescript-reviewer + security-reviewer** — after each coherent chunk of code, in parallel; fix CRITICAL/HIGH findings before moving on. security-reviewer is mandatory for auth, GitHub App, and admin code.
+  - **build-error-resolver** — whenever the build or typecheck breaks.
+  - **e2e-runner** — Playwright coverage of the critical flows at the end of each milestone.
 - **Milestones**: follow M0–M5 from the architecture doc. Complete M0 (scaffold, Supabase project, schema + RLS, auth, curriculum seed) end-to-end and verified before touching M1. Commit in conventional-commit style at every coherent stopping point.
 - The owner/admin is Mrima (`mrimamss@gmail.com`, GitHub `mosesmrima`). Ask before anything destructive or externally visible (new cloud resources, DNS changes, emails to real users).
 
