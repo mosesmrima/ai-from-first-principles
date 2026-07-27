@@ -131,6 +131,24 @@ The 10 phases:
 | Google TPU Research Cloud | Apply for free research access |
 | vast.ai / Lambda Labs | Affordable on-demand rental |
 
+
+## Appendix C — Free bookshelf (optional, phase-matched)
+
+None of these are required — they are consolidation reading and reference, not extra coursework.
+Read the chapter matching the week you *just finished*, or dip in when a concept will not click.
+
+| Phase | Free book | Link |
+|---|---|---|
+| Any (fun, phone-sized) | The Little Book of Deep Learning — Fleuret | https://fleuret.org/francois/lbdl.html |
+| 1 — Math | Mathematics for Machine Learning — Deisenroth et al. | https://mml-book.github.io |
+| 2 — Classical ML | An Introduction to Statistical Learning (Python) | https://www.statlearning.com |
+| 3 — Neural nets | Neural Networks and Deep Learning — Nielsen | http://neuralnetworksanddeeplearning.com |
+| 3–5 — Deep learning | Dive into Deep Learning | https://d2l.ai |
+| 5 — LLMs / NLP | Speech and Language Processing (3rd ed. draft) — Jurafsky & Martin | https://web.stanford.edu/~jurafsky/slp3/ |
+| 7 — RL / RLHF | Reinforcement Learning: An Introduction — Sutton & Barto | http://incompleteideas.net/book/the-book-2nd.html |
+
+Rule: **build first, read to consolidate, never read instead of building.**
+
 ---
 
 *The biggest differentiator is not which courses you take. It is whether you implement
