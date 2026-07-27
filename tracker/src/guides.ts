@@ -8,6 +8,64 @@ export interface Guide {
 }
 
 export const GUIDES: Record<string, Guide> = {
+  week08r: {
+    why: "Retention isn't built by moving forward — it's built by coming back. This week exists because forgetting is normal: re-deriving the math phase from a blank page converts 'I recognized it' into 'I own it'. Struggling to recall IS the mechanism working, not failing.",
+    remember: [
+      "Blank page first, check second. The failed recall attempt is the rep that builds memory.",
+      "If you can rebuild matmul and derive the GD update cold, Phase 1 did its job.",
+      "You will feel worse at this than you expected. Everyone does. Do it anyway.",
+    ],
+  },
+  week16r: {
+    why: "Classical ML concepts (entropy, bias-variance, ensembling) return constantly in deep learning under new names. Locking them in now means Phase 3+ builds on rock, not sand.",
+    remember: [
+      "Rebuild one algorithm cold — the one you found hardest, not easiest.",
+      "Explaining aloud finds gaps that silent review hides.",
+    ],
+  },
+  week28r: {
+    why: "micrograd is the single most important thing you've built. If you can rebuild Value + backward() from nothing, backprop is permanently yours and PyTorch is forever transparent.",
+    remember: [
+      "The blank-page micrograd rebuild is the highest-value 2 hours in this curriculum.",
+      "Gradients accumulate (+=) — if you remember why without looking, you own it.",
+    ],
+  },
+  week36r: {
+    why: "Vision and sequence models are about to fuse into transformers. Consolidating conv/RNN/attention intuitions now makes Phase 5 feel like assembly rather than new material.",
+    remember: [
+      "Attention from scratch, cold, is the rebuild that matters most here.",
+      "Architecture = inductive bias. Say what each architecture assumes about its data.",
+    ],
+  },
+  week48r: {
+    why: "You just built a GPT. This recap turns that from 'a project I did' into knowledge you can produce on a whiteboard in an interview or a design meeting — which is where it earns its keep.",
+    remember: [
+      "softmax(QK^T/sqrt(d))V from memory, plus WHY each piece exists, is the bar.",
+      "Rebuild one transformer block blind. It's shorter than you fear.",
+    ],
+  },
+  week60r: {
+    why: "LLM engineering is a pile of small numbers (chunk sizes, top-k, cache math) that evaporate without retrieval practice. This week pins down the quantitative intuitions employers probe for.",
+    remember: [
+      "KV-cache math and 'retrieval failures dominate RAG failures' are the keepers.",
+      "Your eval set is the phase's real artifact — make sure it still runs.",
+    ],
+  },
+  week68r: {
+    why: "Alignment concepts are subtle and easily blur together (RM vs PPO vs DPO). One recap week keeps the full post-training pipeline crisp before agents consume your attention.",
+    remember: [
+      "Draw the RLHF pipeline from memory: SFT -> reward model -> PPO, and where DPO shortcuts it.",
+      "The KL penalty exists because models goodhart rewards. That sentence is half of alignment.",
+    ],
+  },
+  week76r: {
+    why: "The final consolidation before the research phase: everything from matmul to multi-agent systems, retrievable on demand. This is where 18 months of building becomes a coherent, explainable whole.",
+    remember: [
+      "The agent loop rebuild should take you under an hour now. Notice how far you've come.",
+      "You're about to switch from consuming knowledge to producing it. Cold recall is your toolkit.",
+    ],
+  },
+
   week00: {
     why: "A frictionless environment is what makes the next 18 months sustainable. You're not learning AI today — you're removing every excuse future-you could use to skip a session.",
     remember: [

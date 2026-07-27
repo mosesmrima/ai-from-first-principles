@@ -391,4 +391,58 @@ function expand([id, phase, title]: [string, string, string]): WeekDef {
   return { id, phase, title, steps };
 }
 
-export const WEEKS: WeekDef[] = [...DETAILED, ...REST.map(expand)];
+// --- phase recap weeks (spaced repetition / retrieval practice) --------------
+// A light (~7h) week at the end of each phase. The rule: retrieve from a blank
+// page FIRST, only then check. Struggling to recall is the rep that builds the
+// memory — re-watching is not.
+function recapWeek(id: string, phase: string, phaseName: string, rebuild: string, derive: string): WeekDef {
+  return {
+    id,
+    phase,
+    title: `Recap — lock in ${phaseName}`,
+    steps: [
+      { title: `Blank-page test: on paper, write down everything you remember from ${phaseName} — concepts, formulas, gotchas. No peeking. THEN check against your notes.`, kind: "exercise", minutes: 45 },
+      { title: `Re-derive: ${derive} — on paper, from memory first`, kind: "exercise", minutes: 60 },
+      { title: `Blank-page rebuild: ${rebuild} — fresh file, no looking at your old code`, kind: "build", minutes: 120 },
+      { title: `Re-run every artifact you built this phase; explain each one aloud in 2–3 sentences`, kind: "checkpoint", minutes: 45 },
+      { title: `Catch-up: finish anything left unfinished in this phase`, kind: "build", minutes: 90 },
+      { title: `Write a one-page phase summary note & commit`, kind: "note", minutes: 45 },
+    ],
+  };
+}
+
+const RECAPS: Record<string, WeekDef> = {
+  week08: recapWeek("week08r", "Phase 1 — Math", "the math phase",
+    "reimplement matmul + gradient descent from scratch",
+    "the gradient-descent update rule and backprop for a 2-layer net"),
+  week16: recapWeek("week16r", "Phase 2 — Classical ML", "classical ML",
+    "reimplement k-means or a decision tree from scratch",
+    "entropy/information gain and the bias-variance tradeoff"),
+  week28: recapWeek("week28r", "Phase 3 — Neural Nets", "neural nets",
+    "rebuild micrograd's Value class + backward() from scratch",
+    "the chain rule through a computation graph and why gradients accumulate"),
+  week36: recapWeek("week36r", "Phase 4 — Deep Learning", "deep learning",
+    "reimplement conv2d or scaled dot-product attention from scratch",
+    "why convolutions suit images and what attention computes"),
+  week48: recapWeek("week48r", "Phase 5 — Transformers", "transformers & GPT",
+    "rebuild a transformer block (attention + MLP + residuals) from scratch",
+    "softmax(QK^T/sqrt(d))V and why the causal mask enables generation"),
+  week60: recapWeek("week60r", "Phase 6 — LLM Engineering", "LLM engineering",
+    "rebuild your RAG retrieval pipeline from an empty file",
+    "the KV-cache memory math and why retrieval failures dominate RAG failures"),
+  week68: recapWeek("week68r", "Phase 7 — RLHF", "RLHF & post-training",
+    "reimplement the DPO loss or a REINFORCE loop from scratch",
+    "the Bellman update and the RLHF pipeline (SFT -> RM -> PPO vs DPO)"),
+  week76: recapWeek("week76r", "Phase 8 — Agents", "agentic systems",
+    "rebuild the raw tool-calling loop from an empty file",
+    "the agent loop and what each memory/planning/reflection layer adds"),
+};
+
+// Splice each recap in right after its phase's final week.
+const WITH_RECAPS: WeekDef[] = [];
+for (const w of [...DETAILED, ...REST.map(expand)]) {
+  WITH_RECAPS.push(w);
+  if (RECAPS[w.id]) WITH_RECAPS.push(RECAPS[w.id]);
+}
+
+export const WEEKS: WeekDef[] = WITH_RECAPS;
