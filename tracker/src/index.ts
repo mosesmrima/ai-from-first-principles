@@ -243,7 +243,10 @@ async function handleApi(req: Request, env: Env, url: URL, userId: number | null
       return json({ error: "to, subject, text required" }, 400);
     }
     const { sendEmail } = await import("./notify");
-    const ok = await sendEmail(env, b.to, b.subject.slice(0, 200), b.text.slice(0, 20_000));
+    // Explicit CRLF strip: header safety must not depend on encHeader's
+    // ASCII check staying strict.
+    const subject = b.subject.replace(/[\r\n]+/g, " ").slice(0, 200);
+    const ok = await sendEmail(env, b.to, subject, b.text.slice(0, 20_000));
     return json({ ok });
   }
 
